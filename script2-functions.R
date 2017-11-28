@@ -47,15 +47,14 @@ read_data<-function(proportion = 10)
   
   n = as.integer( nrow(d2)/ proportion )
   d10 = d1[sample(nrow(d1),n),]
+  d11 = d1[-sample(nrow(d1),n),]
+  print (c( nrow(d1), nrow(d2)))
+  stopifnot(nrow(d10) + nrow(d11) == nrow(d1))
   
   d<-rbind(d2, d10)
-  summary(d)
-  ggplot(d, aes(x = classes, fill = classes)) +
-    geom_bar()
+  d_miss <- rbind(d2, d11)
   
-  bc_data = d
-  
-  return(bc_data)
+  return (list(bc_data = d, bc_data_missing = d_miss))
 }
 
 
@@ -73,9 +72,9 @@ make_gain_curves <- function(score, cls)
   return (gain2)
 }
 plot_gain <- function(model_rf, test_data, train_data, test_predictions, train_predictions,
+                      train_name = 'train',
                       file_path="~//", 
-                      jpgname='gain_model_rf'
-) 
+                      jpgname='gain_model_rf') 
 { 
   if (missing(test_predictions)) {
     final <- data.frame(actual = test_data$classes,
@@ -99,7 +98,7 @@ plot_gain <- function(model_rf, test_data, train_data, test_predictions, train_p
   gain2 <- make_gain_curves(score2, cls2) 
   
   graphics.off()
-
+  
   plot(x=c(0, 1), y=c(0, 1), type="l", col="red", lwd=2,
        ylab="True Positive Rate", 
        xlab="Rate of Positive Predictions")
@@ -108,7 +107,7 @@ plot_gain <- function(model_rf, test_data, train_data, test_predictions, train_p
   lines(x=gain2$x, y=gain2$y, col="blue", lwd=2)
   
   legend('topright', 
-         legend=c('random', 'test', 'train') , 
+         legend=c('random', 'test', train_name) , 
          lty=c(1,2,3), 
          bty='n', cex=2.75, 
          col=c('red', 'green', 'blue'))
@@ -260,7 +259,7 @@ plot_ROC <- function(model_rf, test_data, train_data,
   return(result)
 }
 
-plot_results <- function(models)
+plot_results <- function(models, cm_list)
 {
   
   comparison <- data.frame(model = names(models),
@@ -273,7 +272,8 @@ plot_results <- function(models)
                            F1 = rep(NA, length(models)))
   
   for (name in names(models)) {
-    model <- get(paste0("cm_", name))
+    #model <- get(paste0("cm_", name))
+    model <- cm_list[paste0("cm_", name)]
     
     #  comparison[comparison$model == name, ] <- filter(comparison, model == name) %>%
     #    mutate(Sensitivity = model$byClass["Sensitivity"],
