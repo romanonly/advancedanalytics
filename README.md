@@ -89,3 +89,28 @@ Which dataset would you pick now?
   <img src="https://user-images.githubusercontent.com/17115347/33499161-db8cf306-d6a1-11e7-9fb0-0c0aa3fd183d.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/33499165-e0d99918-d6a1-11e7-823f-b4ae348b0956.jpg" width="270"/>  
 </p>
+
+
+## Built With
+
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+
+## Authors
+
+* **Roman Kazinnik** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+
+See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+
+## Acknowledgments
+
+* R opensource statistical packages 
