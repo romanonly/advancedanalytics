@@ -53,7 +53,7 @@ Resamoling trained models can give some initial glimse into intrinsic uncertaint
 Here are resamplied classifications by the six pre-trained models evaluated with ROC, Sensitivity and Specificity.  
 Same model with the same modeling parameters for three different datasets. 
 
-Now we start seeing that **LEFT** is apparently the worst dataset, as it has highest uncertainty (widest resampled classification). At least for GLM and RandomForest original without data massaging. **Right** has lowest uncrertinty and also slightly higher scores.
+Now we start seeing that **LEFT** is apparently the best dataset, as it has lowest uncertainty (short resampled classifications) for GLM and Ooriginal RandomForest . **Right** has highest uncrertinty and also slightly lower scores.
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/33456177-9a7648fa-d5ec-11e7-91f8-ca348ba0fbe3.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/33456185-9f5cbbd8-d5ec-11e7-896f-d01f52665c3e.jpg" width="270"/>  
@@ -67,16 +67,16 @@ calibration in R TBD
 ```
 Here are calibration curves produced by the six models for three different datasets. 
 
-Which dataset would you pick now?
-
-**Left** is apparently our best dataset: its zero-percent and one hundreed-percent predictions have the perfect scores. 
+Again, **Left** is shown to be the best dataset: notice how its zero-percent and one hundreed-percent predictions have the perfect scores. 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/33456199-a9527538-d5ec-11e7-87f5-975e3dc65c68.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/33456201-ac73d6e4-d5ec-11e7-9031-b694caea5e4d.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/33456206-b1a5d5ae-d5ec-11e7-8c8a-24ae7b62d3fa.jpg" width="270"/>  
 </p>
 
-### The three evaluated datasets:
+
+### The three evaluated datasets
+Here are the three unbalanced data sets. **Left** is the least unbalanced, due to low uncertainty models trained using **Left** dataset will produce superior predictions in deployment or for test sets.    
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/33499160-d64b103a-d6a1-11e7-8b12-93a8a976b035.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/33499161-db8cf306-d6a1-11e7-9fb0-0c0aa3fd183d.jpg" width="270"/>  
