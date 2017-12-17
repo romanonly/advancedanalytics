@@ -4,27 +4,33 @@ Data quality for modeling: what modeling metrics should I look at?
 
 ### Getting Started, Prerequisites and Installing
 
-Install R/Rstudio, R modeling packages, such as caret, download repository and run script1. 
+Install R/Rstudio, R modeling packages, download repository and run script1. 
 
 ## Introduction
+The problem of model quality relates essentially to intrinsic data uncertaintly. How trustful if the modeling result? depends on How good is the provided for modeling data? Should I invest in purchasing and processing more data or the data already available just right?
+Surprisingly not all modeling metrics are equal, and some of the metrics can actually be misleading. Because any model accuracy has its unceratinty! 
 
 ### Expirement
-I produce three datasets by decimating the minority data points from the original dataset bc_data. The three datasets are unbalanced 20%, 10% and 5%. Let's se which metric is able to capture best, medium and worst datasets.
-I also apply six classification models: logistic regression, random forest, and random forest with unbalancedness correction upsampling, downsampling, ROSE, SMOTE. 
-I will apply all six models for the three data sets and plot modeling metrics: gain, AUC/ROC, resamples, callibration.
+For my benchmark tests I use three data sets produced by decimation from a well known real data set. 
+Such decimation essentially damages the original data, and I know which of my three generated  data sets is best and worst.
+Let's see how different model metrics are good at guessing the best and worst date set.
+
+I produce three datasets by decimating the minority data points from the original dataset bc_data. The three datasets are unbalanced with a minority class decimated to 20%, 10% and 5%. Let's try and see which metric is able to identify correctly best, medium and worst datasets.
+I also deploy six classification models: logistic regression, random forest, and random forest with unbalancedness correction upsampling, downsampling, ROSE, SMOTE. 
+I will apply all six models for the three data sets and the following modeling metrics: gain, AUC/ROC, resamples, callibration.
 
 ### Gain mettric 
 ```
-Gain metric is widely popular in marketing as it allows to estimate of lift of selecting minority datapoints proposed by modeling vs at random choice. 
+Gain metric is widely popular in marketing as it allows to estimate a lift of selecting datapoints proposed by modeling vs. at random choice. 
 ```
 I plot four gain curves (GLM, Oversampling, Undersampling and SMOTE) for each of the three decimated data sets. 
 Same models with the same modeling parameters for three different datasets. 
 
-Which dataset would you pick?
+Which dataset would you pick based on the gain curve?
 
 Visual inspection of gain metric produced by four models suggests that the worst dataset is **Left**, and the best dataset is **Right**. 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/17115347/33456106-600b7654-d5ec-11e7-9a99-30b2c633ef81.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/33456106-600b7654-d5ec-11e7-9a99-30b2c633ef81.jpg" "TitleA" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/33456123-6ead8652-d5ec-11e7-8fc4-635682319cf6.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/33456137-780a942e-d5ec-11e7-8367-9548d57609fd.jpg" width="270"/>  
 </p>
