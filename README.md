@@ -30,7 +30,7 @@ Which dataset would you pick based on the gain curve?
 
 Visual inspection of gain metric produced by four models suggests that the worst dataset is **Left**, and the best dataset is **Right**. 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/17115347/33456106-600b7654-d5ec-11e7-9a99-30b2c633ef81.jpg" title="TitleA" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/33456106-600b7654-d5ec-11e7-9a99-30b2c633ef81.jpg" width="270" alt="A" />
   <img src="https://user-images.githubusercontent.com/17115347/33456123-6ead8652-d5ec-11e7-8fc4-635682319cf6.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/33456137-780a942e-d5ec-11e7-8367-9548d57609fd.jpg" width="270"/>  
 </p>
