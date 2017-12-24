@@ -1,6 +1,6 @@
-# Data Quality as Modeling uncertainty
+# Data Quality and Prediction Model uncertainty
 
-Data quality for modeling: what modeling metrics should I look at?
+Data quality and prediction modeling: what modeling metrics are telling the truth?
 
 ### Getting Started, Prerequisites and Installing
 
