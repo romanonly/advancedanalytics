@@ -7,8 +7,15 @@ Data quality and prediction modeling: what modeling metrics are telling the trut
 Install R/Rstudio, R modeling packages, download repository and run script1. 
 
 ## Introduction
-The problem of model quality relates essentially to intrinsic data uncertaintly. How trustful if the modeling result? depends on How good is the provided for modeling data? Should I invest in purchasing and processing more data or the data already available just right?
-Surprisingly not all modeling metrics are equal, and some of the metrics can actually be misleading. Because any model accuracy has its unceratinty! 
+
+In the field of data quality and predictive modeling, which modeling metrics are best at “telling the truth,” so to speak?
+
+How did I come to this question? I looked at the metric that’s the most well-known and popular in machine learning, and was surprised by what I found. It showed the best result--the best accuracy---for the lowest quality dataset! After that, I used two metrics that aren’t very popular or well-known, but these two metrics were able to correctly point to the best and worst datasets.
+
+If you’re a data scientist and analyst, in your real-life work you don’t have information about the quality of data provided to you beforehand. You just get the data in its raw form. And so, often, you need to decide--from a very wide range of available datasets--which dataset you actually want to use in your modeling and learning. But how can you know which data to choose? In other words, which data will actually improve the quality of your model? 
+
+Here, I’m demonstrating that looking only at the metric of accuracy can be misleading. You also want to look at other metrics that reflect the predictive uncertainty.
+
 
 ### Expirement
 For my benchmark tests I use three data sets produced by decimation from a well known real data set. 
