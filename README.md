@@ -1,9 +1,5 @@
 ## An Insight into Data Quality: More Data Equals More Work, But Not Necessarily a Better Model
 
-### Getting Started, Prerequisites and Installing
-
-Install R/Rstudio, R modeling packages, download repository and run script1. 
-
 ## Introduction
 In the field of data quality and predictive modeling, which modeling metrics are best at “telling the truth,” so to speak?
 
@@ -101,6 +97,10 @@ Finally, these are the three unbalanced datasets. Left is the least unbalanced, 
 ## To conclude: my advice
 
 Here’s how I suggest that you take advantage of this work. First, always maintain all the metrics when working on your models, from day one. Any new datasets you want to add to your models should show a combined improvement in respect to multiple metrics, not just one. For instance, if you are suggested using not just the last year of historical records, but many years of data from many different marketing campaigns, now you can see quantitatively if these two years can actually improve the one year.
+
+### Getting Started, Prerequisites and Installing
+
+Install R/Rstudio, R modeling packages, download repository and run script1. 
 
 ## Contributing
 
