@@ -1,6 +1,4 @@
-# Data Quality and Prediction Model uncertainty
-
-An Insight into Data Quality: More Data Equals More Work, But Not Necessarily a Better Model
+## An Insight into Data Quality: More Data Equals More Work, But Not Necessarily a Better Model
 
 ### Getting Started, Prerequisites and Installing
 
@@ -31,13 +29,13 @@ I produce three datasets by decimating the minority data points from the origina
 I will apply all six models to the three datasets, and for the following modeling metrics: gain, AUC/ROC, resamples, and calibration.
 
 ### Gain mettric 
-```
+
 Gain metric is popular in the field of marketing because it allows for the estimation of a lift of selecting data points proposed by modeling vs. at random. Let’s say that you use no modeling and know that, historically, you have a 10% response. You can expect that by contacting/emailing/speaking face-to-face with 100 of your clients (selected at random) you will receive a positive response from 10 people. The gain metric tells you that, using a a predictive model, of the first 10 people you will score, say, 6; of the next 10 people you will score 2 more; and of the next 10, another 2. 
 
 So what does this mean for you? You don’t need to call or seek out a face-to-face with all of these 100 people. In real life, this 100 actually represents 100,000 people, because real marketing companies work with hundreds of thousands of people. Realistically, we need a model that means we have to speak to fewer people, because marketing companies can’t afford to call/meet with each person to make a sale/break a deal/sign a contract/etc. In other words, marketing companies need a model that helps them identify the group (of, say, 1,000) with the highest potential for closing a deal.
 
 However, as simple as this may sound, only looking at this particular gain metric is a problem—see the examples below based on real-life data.
-```
+
 I plot four gain curves (GLM, Oversampling, Undersampling, and SMOTE) for each of the three decimated datasets. These are the same models, with the same modeling parameters, for three different datasets. 
 
 Visual inspection of the gain metric produced by the four models suggests that the worst dataset is **Left**, and the best dataset is **Right**.
@@ -49,9 +47,7 @@ Visual inspection of the gain metric produced by the four models suggests that t
 </p>
 
 ### ROC mettric 
-```
-ROIC metric in R uses: TBD. 
-```
+
 I plot the ROC curve for SMOTE classification for training and testing (with no overfitting observed) for each of the three decimated datasets. These are the same models with the same modeling parameters for three different datasets. 
 
 Visual inspection of the ROC metric suggests that the worst dataset is on the **Left**. The other two (**Right** and **Center**) perform equally well or slightly better.
@@ -78,10 +74,10 @@ Finally, one of them tells us the true story of the data. Yes—the **Left** mod
 </p>
 
 ### Data uncerttainty with calibration  
-```
+
 Here are the calibration curves produced by the six models for the three different datasets. 
 Roughly speaking, with the calibration graph you want these intervals be narrow and close to the ideal prediction straight line.
-```
+
 Once again, **Left** is the best dataset: notice how its 0 percent and 100 percent predictions have perfect scores.
 
 How can we tell that the **Left** calibration is better? First, look at the “0 percent” guesses—they correspond to the actual majority class. Similarly, in the case of the “100 percent” guesses, when this model says “100% probability” it’s almost always correct. And now, compare this to the other two **Center** and **Right** models. Their “0 percent” and “100 percent” are not as accurate anymore.
@@ -93,6 +89,7 @@ How can we tell that the **Left** calibration is better? First, look at the “0
 
 
 ### The three evaluated datasets
+
 Finally, these are the three unbalanced datasets. Left is the least unbalanced, because low uncertainty models trained using the Left dataset will produce superior predictions both in deployment and for test sets.    
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/33499160-d64b103a-d6a1-11e7-8b12-93a8a976b035.jpg" width="270"/>
@@ -102,6 +99,7 @@ Finally, these are the three unbalanced datasets. Left is the least unbalanced, 
 
 
 ## To conclude: my advice
+
 Here’s how I suggest that you take advantage of this work. First, always maintain all the metrics when working on your models, from day one. Any new datasets you want to add to your models should show a combined improvement in respect to multiple metrics, not just one. For instance, if you are suggested using not just the last year of historical records, but many years of data from many different marketing campaigns, now you can see quantitatively if these two years can actually improve the one year.
 
 ## Contributing
