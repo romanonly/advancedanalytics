@@ -26,7 +26,6 @@ Bayesian Networks: **Left** and **Center** Averaged Bootstrpap 150 HC (Hill-Clim
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34469705-ec3c8cc0-eef2-11e7-8ccd-d33449e88e94.jpg" width="270"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34469708-f461dca2-eef2-11e7-891f-346ad384508c.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469724-27df1950-eef3-11e7-819e-04544786bef7.jpg" width="270"/>  
 </p>
   only 20 most important variables shown (out of 51)
@@ -57,10 +56,8 @@ VehcSzSmall             9.953
 '
 cols_remove = names(d0) %in% c( "i1.EDnDL", "i1.MoPolInc", "i3.MoLaClm", "i5.NoOC", "i6.Ed", "i6.Gr", "VehcSz", "PoT, Po", "STATE")
 '
-
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34469980-2853edea-eef6-11e7-93a4-2cca8510ea49.jpg" width="270"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34469982-2d68cc1a-eef6-11e7-8ed1-76d21f71ccbb.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469973-1cbd198e-eef6-11e7-96bb-316ed6454d6f.jpg" width="270"/>  
 </p>
 '
@@ -93,6 +90,7 @@ i6.CovPremium           3.535
 ### Classification accuracy with supervised machine learning (original marketing data)
 **Left** AUC UP-sampled Random Forest and **Right** Boosted Logistic Regression
 <p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34469708-f461dca2-eef2-11e7-891f-346ad384508c.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469734-3dee48ec-eef3-11e7-8ada-a4413e2ba503.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469732-37e21d52-eef3-11e7-9c30-0b87e4cd9968.jpg" width="270"/>  
 </p>
@@ -100,6 +98,7 @@ i6.CovPremium           3.535
 ### Nodes removed with Bayesian Networks: Classification accuracy with supervised machine learning (original marketing data)
 **Left** AUC UP-sampled Random Forest and **Right** Boosted Logistic Regression
 <p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34469982-2d68cc1a-eef6-11e7-8ed1-76d21f71ccbb.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469991-4a3d3178-eef6-11e7-9cab-fb346c9eb4ca.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469988-447d5786-eef6-11e7-9e6f-899b3740bef9.jpg" width="270"/>  
 </p>
