@@ -11,8 +11,14 @@ Bayesian Networks: **Left** and **Center** Averaged Bootstrpap 150 HC (Hill-Clim
 **Right** Naive Bayes:
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34469873-dd107700-eef4-11e7-8eee-9f8afb3d49a4.jpg" width="270"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34469883-f21fabfc-eef4-11e7-8246-035b5ff32994.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469891-083ca94e-eef5-11e7-8b1d-cc2fb191e7e3.jpg" width="270"/>  
+</p>
+
+Gain, AUC (Area Under Curve) for Up sampling Random Forest, and Boosted Logistic regression"
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34469883-f21fabfc-eef4-11e7-8246-035b5ff32994.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34469734-3dee48ec-eef3-11e7-8ada-a4413e2ba503.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34469732-37e21d52-eef3-11e7-9c30-0b87e4cd9968.jpg" width="270"/>
 </p>
 
 ### Bayseian Networks: classification accuracy with gain mettric 
@@ -21,6 +27,15 @@ Bayesian Networks: **Left** and **Center** Averaged Bootstrpap 150 HC (Hill-Clim
   <img src="https://user-images.githubusercontent.com/17115347/34469885-fa865372-eef4-11e7-8e32-b53a5d5fb58c.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469892-0b12243c-eef5-11e7-8d1f-74aefbc64ed8.jpg" width="270"/>  
 </p>
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34469982-2d68cc1a-eef6-11e7-8ed1-76d21f71ccbb.jpg" width="270"/>
+  <img src="
+https://user-images.githubusercontent.com/17115347/34469991-4a3d3178-eef6-11e7-9cab-fb346c9eb4ca.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34469988-447d5786-eef6-11e7-9e6f-899b3740bef9.jpg" width="270"/>  
+</p>
+
+
 
 ### Classification accuracy with supervised machine learning (original marketing data)
 
