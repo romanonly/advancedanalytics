@@ -30,8 +30,7 @@ Bayesian Networks: **Left** and **Center** Averaged Bootstrpap 150 HC (Hill-Clim
   <img src="https://user-images.githubusercontent.com/17115347/34469724-27df1950-eef3-11e7-819e-04544786bef7.jpg" width="270"/>  
 </p>
   only 20 most important variables shown (out of 51)
-
-                      Overall
+'                      Overall
 i1.CLfV               100.000
 i1.TCA                 95.903
 i1.MoPolInc            90.717
@@ -52,6 +51,7 @@ i6.MSMarried           14.564
 i6.SCBranch            13.030
 i6.SCWeb               11.842
 VehcSzSmall             9.953
+'
 
 ### Remove Nodes based on Bayseian Networks: classification accuracy with supervised machine learning
 '
@@ -63,6 +63,7 @@ cols_remove = names(d0) %in% c( "i1.EDnDL", "i1.MoPolInc", "i3.MoLaClm", "i5.NoO
   <img src="https://user-images.githubusercontent.com/17115347/34469982-2d68cc1a-eef6-11e7-8ed1-76d21f71ccbb.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34469973-1cbd198e-eef6-11e7-96bb-316ed6454d6f.jpg" width="270"/>  
 </p>
+'
 [1] "==== up ==== "
   only 20 most important variables shown (out of 40)
 
@@ -87,6 +88,7 @@ i6.VCSUV                6.236
 i6.VCTwo-Door Car       6.095
 i3.ESUnemployed         4.356
 i6.CovPremium           3.535
+'
 
 ## To conclude: my advice
 
