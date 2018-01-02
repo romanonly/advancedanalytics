@@ -90,6 +90,20 @@ i3.ESUnemployed         4.356
 i6.CovPremium           3.535
 '
 
+### Classification accuracy with supervised machine learning (original marketing data)
+**Left** AUC UP-sampled Random Forest and **Right** Boosted Logistic Regression
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34469734-3dee48ec-eef3-11e7-8ada-a4413e2ba503.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34469732-37e21d52-eef3-11e7-9c30-0b87e4cd9968.jpg" width="270"/>  
+</p>
+
+### Nodes removed with Bayesian Networks: Classification accuracy with supervised machine learning (original marketing data)
+**Left** AUC UP-sampled Random Forest and **Right** Boosted Logistic Regression
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34469991-4a3d3178-eef6-11e7-9cab-fb346c9eb4ca.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34469988-447d5786-eef6-11e7-9e6f-899b3740bef9.jpg" width="270"/>  
+</p>
+
 ## To conclude: my advice
 
 ### Getting Started, Prerequisites and Installing
