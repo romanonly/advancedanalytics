@@ -152,26 +152,52 @@ Boosted Logistic Regression (see reference (TBD).
 Then I plot Sensitivity-Specificity accuracy intervals from  resampling, calibration curves, and gain metric curves.
 One can see some very extremely small loss in accuracy and confidence for the decimated set.
 
+Discretized all fautures: resamples, calibration-1, gains
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34651615-93804470-f3a0-11e7-9544-d7410138a5f2.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34651624-a3c9ff06-f3a0-11e7-9c53-ee3cf2099b9c.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34651622-a0ccbcb2-f3a0-11e7-94da-b9a3c1443d05.jpg" width="270"/>  
+</p>
+expirement-1
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34651642-d08f5bb2-f3a0-11e7-874c-efc933b39c37.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34651646-d5791f32-f3a0-11e7-86a9-258747afd332.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34651644-d3c16406-f3a0-11e7-81c4-936a2df1f5ab.jpg" width="270"/>  
+</p>
+expirement-2
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34651668-f61805e6-f3a0-11e7-9c77-91af1aada846.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34651672-fcf5dfbe-f3a0-11e7-8b10-13c74324089c.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34651671-fb0fb2c4-f3a0-11e7-8533-bc735a9e858e.jpg" width="270"/>  
+</p>
+
+<!---
+Non-discretized dataset: original vs decimated1 vs decimated-2
+It is not the best way to ompare - Bayesian L can see only discretized variables!
+<p align="center">
+  <img src="" width="270"/>
+  <img src="" width="270"/>  
+  <img src="" width="270"/>  
+</p>
 Original
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646590-3b2cf1e4-f33a-11e7-9fd0-5651136f8b50.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646600-719249e6-f33a-11e7-8c44-28da3794a088.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34646605-99c49d56-f33a-11e7-97c2-f2ea1312a5f8.jpg" width="270"/>  
 </p>
-
 Decimated-1: removed non-important by bayesian learning
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646817-345c8252-f340-11e7-970a-eabedf08daf6.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646819-39e1124c-f340-11e7-8afd-cfe631cd5248.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34646821-459fd3e8-f340-11e7-95f9-6b8fc4fa01cd.jpg" width="270"/>  
 </p>
-
 Decimated-2: removed important features by bayesian learning
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34647429-b1e252f0-f350-11e7-9727-8f931e74d1c6.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34647433-b86a6c5c-f350-11e7-9819-3730aa392cd9.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34647435-c7c1add2-f350-11e7-8b8e-d5ee4fe78fe9.jpg" width="270"/>  
 </p>
+-->
 
 ## Comparison of preidction for three datasets: 
 **Left**: original dataset
@@ -182,10 +208,18 @@ Upper-sampling of the data with random Forest
 Area Under th  Curve (AUC) shows same quality of classification prediction, even for the decimated-1 dataset 
 a few percent better. Decimated-2 looks a bit worse:
 <p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34651632-b285499c-f3a0-11e7-9ed8-fca4326b9c39.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34651650-dafb330a-f3a0-11e7-9944-c1ef27205acf.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34651675-0305d7d8-f3a1-11e7-9a9b-6e3e204ae0f3.jpg" width="270"/>  
+</p>
+<!---
+Non-discretized dataset: original vs decimated1 vs decimated-2
+<p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646607-afa40c42-f33a-11e7-9bea-3f79f10a7457.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646825-4c63d15c-f340-11e7-8f03-aaca5a11f1f0.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34647442-d574bb90-f350-11e7-9bbf-0b71923d152a.jpg" width="270"/>  
 </p>
+-->
 
 Confidence Intervals from Calibration: 
 **Left**: original dataset
@@ -195,21 +229,35 @@ Confidence Intervals from Calibration:
 Hard to notice any difference Left and Center. Perhaps very insignificant/small/week loss of quality for the decimated dataset 
 **Center**: it is just a little moved away from the diagonal line in its second from the left bin.  
 **Right**: confidence intervals moved from the diaonal significantly:
-
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34651626-a84fb354-f3a0-11e7-9457-108274b285fc.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34651648-d768d1de-f3a0-11e7-8c0f-9255ddac8939.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34651673-fe605f96-f3a0-11e7-92c7-04d9ba83c514.jpg" width="270"/>  
+</p>
+<!---
+Non-discretized dataset: original vs decimated1 vs decimated-2
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646601-7196e10e-f33a-11e7-8fb7-f698bbaf34ef.jpg" width="270" height="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646820-3ed6aa6e-f340-11e7-9294-73e99594feaf.jpg" width="270" height="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34647434-bdd7f01a-f350-11e7-9ca7-60618f11dc98.jpg" width="270" height="270"/>  
 </p>
+-->
 
 Logistic regression AUC metric 
 Most explicit indicator. 
 **Left** and
 **Center** - look almost identical.
 **Right** - there is ZERO prediction accuracy by logistic regression for dataset-2. 
-
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/17115347/34651635-b72dc3ac-f3a0-11e7-9abc-8f3f122e3f05.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34651651-dde5841c-f3a0-11e7-8e84-0b5f020ecc4c.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34651678-06e6579c-f3a1-11e7-81ab-a39ea2dfcede.jpg" width="270"/>  
+</p>
+<!---
+Non-discretized dataset: original vs decimated1 vs decimated-2
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34647452-1bfd91ea-f351-11e7-91ad-1e3df4f9690a.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34647451-0efccbdc-f351-11e7-9a92-ea9bac419916.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34647449-fc3ec07c-f350-11e7-995e-104648bac7cb.jpg" width="270"/>  
 </p>
+-->
