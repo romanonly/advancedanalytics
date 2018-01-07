@@ -6,16 +6,28 @@ Here is a comparitive analsysis of Bayesian Learning vs. Supervised Machine Lear
 
 ## Dataset
 
-Publicly available email marketing campaign dataset from IBM. 
+Publicly available email marketing campaign dataset from IBM (ref (TBD)). 
+Typical B2B model with information about clients. Clients are contacted to purchase auto policy. 
+We want to estimate clients **Response** from some 23 features (below) which of course have different predictability.
+The only parameter marketing manager can really change s the time when to contact the person: it is dictated by
+the **Effective To Date** feature: should we contact the client right before the expiration, or we well in advance?
+
+As my analysis below shows, Supervised Machine LAearning with the Naive-Bayes features independence assumption draws wrong 
+conclusion that this feature is important. 
+But Bayseian Analysis shows this feature is UNIMPORTANT!
+And hre is how I make  validation/proof/ this result: I remove this feature from the original dataset and show that the quality of machine learning prediction doesn't change!
+
+However, if I remove an important feature from the Bayesian Learning - Supervised Machine Learning fails dramatically!
+
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34472259-c64c011a-ef2b-11e7-9abe-c8c16c25078e.png" width="900"/>
 </p>
 
 ## Bayesian Networks
-**Top** - Bayseian network obtained by averaged bootstrpap of 150 HC (Hill-Climb) models
+**Left** - Bayseian network obtained by averaged bootstrpap of 150 HC (Hill-Climb) models
 and 
-**Bottom** Naive Bayes. 
+**Right** Naive Bayes. 
 
 Naive Bayes assumes that all the features are independent and only operates with pairwise 
 correlations between the target and the feature. 
@@ -49,7 +61,7 @@ However, classification (and its corresponding accuracy) is just one aspect of B
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646287-cffec17a-f331-11e7-8996-df412b09a7ca.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646289-df0a1110-f331-11e7-900b-fb8201a5236a.jpg" width="270"/>  
-  <img src="" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34647063-a5020be4-f345-11e7-8eac-370757e312d3.jpg" width="270"/>  
 </p>
 
 
@@ -79,7 +91,24 @@ Bottom raw shows the original dataset with all the feautres.
 Notice the extremely small loss of classification prediction of the decimated dateset vs the original dataset.
 And I have removed the top features as reported by Supervised Machine Learning!
 
-Allsamples + Calibration1 + AllGains
+## Conclusion
+
+We often forget about this "features-independence" assumption that we make in all mot popular Supervised Machine Learning 
+methods, from logistics regression and Naive-bayes to many variants of Random-Forest. 
+We forget it because for the classification accuracy-confidence it really doesn't make any difference.
+we often are happy with Naive-Bayse or Random Forest classification because most of the accuracy gains we
+get from various boosting and data upsampling techniques.
+
+
+However, we can't ignore this assumption when we looking into importance of features!
+That is what I wanted to show in this blog.
+
+## Comparison Figures
+For each dataset (original and decimated) I apply five (5) learning models: Random Forest in 4 different variations and
+Boosted Logistic Regression (see reference (TBD).
+
+Then I plot Sensitivity-Specificity accuracy intervals from  resampling, calibration curves, and gain metric curves.
+One can see some very extremely small loss in accuracy and confidence for the decimated set.
 
 Original
 <p align="center">
@@ -95,36 +124,17 @@ Decimated
   <img src="https://user-images.githubusercontent.com/17115347/34646821-459fd3e8-f340-11e7-95f9-6b8fc4fa01cd.jpg" width="270"/>  
 </p>
 
-PlotUpper: Original vs. Decimated
+PlotUpper: Original (**Left**) vs. Decimated (**Right**)
+Area Under th  Curve (AUC) shows same quality of classification prediction, even for the decimated dataset a few percent even better.
+
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646607-afa40c42-f33a-11e7-9bea-3f79f10a7457.jpg" width="400"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646825-4c63d15c-f340-11e7-8f03-aaca5a11f1f0.jpg" width="400"/>  
 </p>
 
-Calibration: Original vs. Decimated
+Confidence Intervals from Calibration: Original vs. Decimated 
+Hard to notice any difference. Perhaps very insignificant/small/week loss of quality for the decimated dataset **Right**: it is just a little moved away from the diagonal line in its second from the left bin.  
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646601-7196e10e-f33a-11e7-8fb7-f698bbaf34ef.jpg" width="400"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646820-3ed6aa6e-f340-11e7-9294-73e99594feaf.jpg" width="400"/>  
 </p>
-
-## Conclusion
-
-We often forget about this "features-independence" assumption that we make in all mot popular Supervised Machine Learning 
-methods, from logistics regression and Naive-bayes to many variants of Random-Forest. 
-We forget it because for the classification accuracy-confidence it really doesn't make any difference.
-we often are happy with Naive-Bayse or Random Forest classification because most of the accuracy gains we
-get from various boosting and data upsampling techniques.
-
-
-However, we can't ignore this assumption when we looking into importance of features!
-That is what I wanted to show in this blog.
-
-
-
-
-
-
-
-
-
-
