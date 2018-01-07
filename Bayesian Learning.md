@@ -1,8 +1,24 @@
 ## Most important features as reported by Supervised Machine learning can be really NOT important! Bayesian explanation
 
-## Introduction
+## Introduction and Claims
 
-Here is a comparitive analsysis of Bayesian Learning vs. Supervised Machine Learning, Accuracy, Variables Importance, Confidence..
+Here is a comparitive analsysis for a very important question: importance of Variables.
+
+I compare Bayesian Learning vs. two methods of Supervised Machine Learning: logistic regression and random Forest. 
+Both BL and ML can tell variables importance, 
+
+I show that oftenly forgottern assumption of Logisrtic regression of the "features independence" turns its "variables importance" into errorenoeus/misleading for datasets which vialotes uch assumption (which is probably true for most real-life data).
+
+In addition I show that Random Forest is able to recover and still produce same-quality of clasification prediction /
+not susceptible to such "featrures independence" assumption. 
+
+The main conclusion is - for the features importance problem look not at Supervised ML but at Bayesian Learning.
+
+
+
+## Keywords and Terms
+
+In my analysis I will use multiple classification prediction accuracy metrics: Area Under Curve (AUC), gain metric, ROC - Sensitivity - Specificity , and also Models Prediction Uncertainty as Resampling and Confidence intervals as Model Calibration.
 
 ## Dataset
 
@@ -12,12 +28,14 @@ We want to estimate clients **Response** from some 23 features (below) which of 
 The only parameter marketing manager can really change s the time when to contact the person: it is dictated by
 the **Effective To Date** feature: should we contact the client right before the expiration, or we well in advance?
 
-As my analysis below shows, Supervised Machine LAearning with the Naive-Bayes features independence assumption draws wrong 
-conclusion that this feature is important. 
-But Bayseian Analysis shows this feature is UNIMPORTANT!
-And hre is how I make  validation/proof/ this result: I remove this feature from the original dataset and show that the quality of machine learning prediction doesn't change!
+As my analysis below shows, Supervised Machine LAearning uses the Naive-Bayes "features independence" assumption - and may draw suggest conclusion that this (Effective to Date)  feature is important. 
 
-However, if I remove an important feature from the Bayesian Learning - Supervised Machine Learning fails dramatically!
+Now, Bayseian Analysis shows this feature is absolutely UNIMPORTANT and Response is independent of this feature.
+What I sugget is trust to Bayseian Learning.
+
+Here I show how to make  validation/proof/confirm  of my claim: I remove the important feature as it is reported by Supervised ML (both Random Forest and Logistic Regression)  (but unimportant by Bayesian Learning) from the original dataset and show that the quality of machine learning classification doesn't change!
+
+On the other hand,  when I remove  a few important features based on the the Bayesian Learning (but unimportant by ML/Random Forest) - Logistic regression classification accuracy fails dramatically. That is the indication that the removed feature was  really important. 
 
 
 <p align="center">
@@ -72,32 +90,32 @@ In this work I show that Bayesian Learning features ranking should be more accur
 </p>
 
 
-## Twoxpirements
+## Two expirements
 
 Now I prodice a new datasey by removing from the original dataset the variables that Bayesian learning reported as unimportant. 
 
-Notice that some of these fatures that I removed - they are actually in the top of the importance list as reported by supervised machine learning!
+Notice that some of these fatures that I removed - they are actually in the top of the importance list as reported by  Random Forest learning!
 
 ## Non-important variables by Bayesian learning
 Those are the variables that outside of the Markov blanket of the target, as well as featyres most far away insides the
 Narkov blanket from the target. 
 
-Therefore, in my first expirement I decimate the original dataset by removing independent by Bayesian Learning fatures from the original dataset. Notice that I remove the features that presumably are "noon-important" by the supervised machine learning.
+Therefore, in my first expirement I decimate the original dataset by removing independent by Bayesian Learning fatures from the original dataset. Notice that I remove the features that presumably are "noon-important" by the Random Forest learning.
 here is the list of features: TBD
 
-I my secoond expirement I remove the features that close to the target, and also "unimportant" by the supervised machine learning: here thet are (TBD)
+I my secoond expirement I remove the features that close to the target, and also "unimportant" by the supervised Random Forest learning: here thet are (TBD)
 
 
 The ultimate INDEPENDENT test is the follwing.
 the expirement that dammages the original dataset the most- that means the removed in such expirement features are happpened to be MORE important.
 
-## original dataset: Most important variables by supervised machine learning
-Here is the list of the mostimportant features from the machine learning.
+## original dataset: Most important variables by Random Forest learning
+Here is the list of the mostimportant features from the Random Forest learning: TBD
 
-## New decimated dataset 1: Most important variables by supervised machine learning
+## New decimated dataset 1: 
 I apply supervised MK to the new dataset and produce a list of most important variables from this decimated dataset.
 
-## New decimated dataset 2: Most important variables by supervised machine learning
+## New decimated dataset 2: 
 I apply supervised MK to the second new dataset and produce a list of most important variables from this decimated dataset.
 
 
