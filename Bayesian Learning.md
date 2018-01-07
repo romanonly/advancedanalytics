@@ -43,7 +43,7 @@ However, the link from *gender* to *income* (via *Location.Code*) makes sense.
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646280-a6e82056-f331-11e7-82ca-683501be0acf.jpg" width="400"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34646286-c7b2a23e-f331-11e7-905d-8e0e77eb627c.jpg" width="500"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34646286-c7b2a23e-f331-11e7-905d-8e0e77eb627c.jpg" width="450"/>
 </p>
 
 ## Bayesian Networks: classification accurcay
@@ -141,21 +141,21 @@ Original
   <img src="https://user-images.githubusercontent.com/17115347/34646605-99c49d56-f33a-11e7-97c2-f2ea1312a5f8.jpg" width="270"/>  
 </p>
 
-Decimated-1: removed non-important by bayesian 
+Decimated-1: removed non-important by bayesian learning
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34646817-345c8252-f340-11e7-970a-eabedf08daf6.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34646819-39e1124c-f340-11e7-8afd-cfe631cd5248.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34646821-459fd3e8-f340-11e7-95f9-6b8fc4fa01cd.jpg" width="270"/>  
 </p>
 
-Decimated-2: removed important by bayesian 
+Decimated-2: removed important features by bayesian learning
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17115347/34647429-b1e252f0-f350-11e7-9727-8f931e74d1c6.jpg" width="270"/>
   <img src="https://user-images.githubusercontent.com/17115347/34647433-b86a6c5c-f350-11e7-9819-3730aa392cd9.jpg" width="270"/>  
   <img src="https://user-images.githubusercontent.com/17115347/34647435-c7c1add2-f350-11e7-8b8e-d5ee4fe78fe9.jpg" width="270"/>  
 </p>
 
-
+## Comparison of preidction for three datasets: 
 **Left**: original dataset
 **Center** - decimated-1
 **Right** - decimated-2
@@ -164,9 +164,9 @@ Upper-sampling of the data with random Forest
 Area Under th  Curve (AUC) shows same quality of classification prediction, even for the decimated-1 dataset 
 a few percent better. Decimated-2 looks a bit worse:
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/17115347/34646607-afa40c42-f33a-11e7-9bea-3f79f10a7457.jpg" width="300"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34646825-4c63d15c-f340-11e7-8f03-aaca5a11f1f0.jpg" width="300"/>  
-  <img src="https://user-images.githubusercontent.com/17115347/34647442-d574bb90-f350-11e7-9bbf-0b71923d152a.jpg" width="300"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34646607-afa40c42-f33a-11e7-9bea-3f79f10a7457.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34646825-4c63d15c-f340-11e7-8f03-aaca5a11f1f0.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34647442-d574bb90-f350-11e7-9bbf-0b71923d152a.jpg" width="270"/>  
 </p>
 
 Confidence Intervals from Calibration: 
@@ -179,9 +179,9 @@ Hard to notice any difference Left and Center. Perhaps very insignificant/small/
 **Right**: confidence intervals moved from the diaonal significantly:
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/17115347/34646601-7196e10e-f33a-11e7-8fb7-f698bbaf34ef.jpg" width="270" height="200"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34646820-3ed6aa6e-f340-11e7-9294-73e99594feaf.jpg" width="270" height="200"/>  
-  <img src="https://user-images.githubusercontent.com/17115347/34647434-bdd7f01a-f350-11e7-9ca7-60618f11dc98.jpg" width="270" height="200"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34646601-7196e10e-f33a-11e7-8fb7-f698bbaf34ef.jpg" width="270" height="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34646820-3ed6aa6e-f340-11e7-9294-73e99594feaf.jpg" width="270" height="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34647434-bdd7f01a-f350-11e7-9ca7-60618f11dc98.jpg" width="270" height="270"/>  
 </p>
 
 Logistic regression AUC metric 
@@ -191,7 +191,7 @@ Most explicit indicator.
 **Right** - there is ZERO prediction accuracy by logistic regression for dataset-2. 
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/17115347/34647452-1bfd91ea-f351-11e7-91ad-1e3df4f9690a.jpg" width="300"/>
-  <img src="https://user-images.githubusercontent.com/17115347/34647451-0efccbdc-f351-11e7-9a92-ea9bac419916.jpg" width="390"/>  
-  <img src="https://user-images.githubusercontent.com/17115347/34647449-fc3ec07c-f350-11e7-995e-104648bac7cb.jpg" width="300"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34647452-1bfd91ea-f351-11e7-91ad-1e3df4f9690a.jpg" width="270"/>
+  <img src="https://user-images.githubusercontent.com/17115347/34647451-0efccbdc-f351-11e7-9a92-ea9bac419916.jpg" width="270"/>  
+  <img src="https://user-images.githubusercontent.com/17115347/34647449-fc3ec07c-f350-11e7-995e-104648bac7cb.jpg" width="270"/>  
 </p>
