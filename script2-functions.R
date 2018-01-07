@@ -1,44 +1,8 @@
 #
 #script2_funcions
 #
-read_data<-function(proportion = 10)
+remove_minority<-function(bc_data, proportion)
 {
-
-  bc_data <- read.table("datasets/breast-cancer-wisconsin.data.txt", 
-                        header = FALSE, 
-                        sep = ",")
-  
-  colnames(bc_data) <- c("sample_code_number", 
-                         "clump_thickness", 
-                         "uniformity_of_cell_size", 
-                         "uniformity_of_cell_shape", 
-                         "marginal_adhesion", 
-                         "single_epithelial_cell_size", 
-                         "bare_nuclei", 
-                         "bland_chromatin", 
-                         "normal_nucleoli", 
-                         "mitosis", 
-                         "classes")
-  
-  bc_data$classes <- ifelse(bc_data$classes == "2", "benign",
-                            ifelse(bc_data$classes == "4", "malignant", NA))
-  
-  bc_data[bc_data == "?"] <- NA
-  
-  # how many NAs are in the data
-  length(which(is.na(bc_data)))
-  nrow(bc_data)
-  nrow(bc_data[is.na(bc_data), ])
-  ## Missing values are imputed with the mice package.
-  # impute missing data
-  bc_data[,2:10] <- apply(bc_data[, 2:10], 2, function(x) as.numeric(as.character(x)))
-  dataset_impute <- mice(bc_data[, 2:10],  print = FALSE)
-  bc_data <- cbind(bc_data[, 11, drop = FALSE], mice::complete(dataset_impute, 1))
-  
-  bc_data$classes <- as.factor(bc_data$classes)
-  
-  summary(bc_data$classes)
-  
   #
   # remove minority class to n=5% 10%
   #
@@ -46,6 +10,9 @@ read_data<-function(proportion = 10)
   d2 = bc_data[bc_data$classes != "malignant",]
   
   n = as.integer( nrow(d2)/ proportion )
+  
+  n = min(n, nrow(d1) - 2)
+  
   d10 = d1[sample(nrow(d1),n),]
   d11 = d1[-sample(nrow(d1),n),]
   print (c( nrow(d1), nrow(d2)))
@@ -55,6 +22,7 @@ read_data<-function(proportion = 10)
   d_miss <- rbind(d2, d11)
   
   return (list(bc_data = d, bc_data_missing = d_miss))
+  
 }
 
 
@@ -74,26 +42,28 @@ make_gain_curves <- function(score, cls)
 plot_gain <- function(model_rf, test_data, train_data, test_predictions, train_predictions,
                       train_name = 'train',
                       file_path="~//", 
-                      jpgname='gain_model_rf') 
+                      jpgname='gain_model_rf',
+                      classes = "classes",
+                      malignant="malignant") 
 { 
   if (missing(test_predictions)) {
     final <- data.frame(actual = test_data$classes,
                         predict(model_rf, newdata = test_data, type = "prob"))
   } else {
-    final <- data.frame(actual = test_data$classes, test_predictions)
+    final <- data.frame(actual = test_data[,classes], test_predictions)
   }
   
-  gain <- make_gain_curves(score =  final$malignant, cls = as.array(test_data$classes)) 
+  gain <- make_gain_curves(score =  final[,malignant], cls = as.array(test_data[,classes])) 
   
   if (missing(train_predictions)) {
     final2 <- data.frame(actual = train_data$classes,
                          predict(model_rf, newdata = train_data, type = "prob"))
   } else {
-    final2 <- data.frame(actual = train_data$classes,train_predictions)
+    final2 <- data.frame(actual = train_data[,classes],train_predictions)
   }
   
-  score2 = final2$malignant #benign
-  cls2 = as.array(train_data$classes)
+  score2 = final2[,malignant] #benign
+  cls2 = as.array(train_data[,classes])
   
   gain2 <- make_gain_curves(score2, cls2) 
   

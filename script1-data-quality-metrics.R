@@ -1,21 +1,33 @@
-library(caret)
+#load indepenndent packages
+'
+source("https://bioconductor.org/biocLite.R")
+biocLite("pcaGoPromoter")
 
-library(mice)
-library(ggplot2)
+UBUNTU: 
 
-library(pcaGoPromoter)
-library(ellipse)
+sudo apt-get  install libcurl4-gnutls-dev
+install.packages("DMwR")
 
-library(doParallel)
+sudo apt-get update
+sudo apt-get install libxml2-dev
+sudo apt-get install r-cran-xml
+install.packages("XML")
+install.packages("plotROC")
+'
+#load from R repository
+packages1 <- c("caret", "mice", "ggplot2","randomForest", "e1071", "ROSE",  "DMwR")#"SMOTE",
+packages2 <- c("ellipse", "doParallel", "lattice","iterators","foreach","parallel")
+packages3 <- c("mlbench", "pROC", "ROCR","jpeg","tidyr","plyr","dplyr")
+packages4 <- c("XML", "gridSVG","plotROC", "pcaGoPromoter")
 
-# READ and PARTITION
-library(lattice)
+packages = c(packages1, packages2, packages3, packages4)
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
 
-# caret currently fails for multi-core: make sure to use sequential processing
-library(iterators)
-library(foreach)
-library(parallel)
-library(doParallel)
+lapply(packages, library, character.only = TRUE)
+
+
 no_cores <- detectCores() - 1
 cl <- makeCluster(no_cores, outfile=paste0('./info_parallel.log'))
 #registerDoParallel(cl)
@@ -23,29 +35,14 @@ stopCluster(cl)
 registerDoSEQ()
 
 
-library(mlbench)
-library(plotROC)
-library(pROC)
 
-library('ROCR')
-library(jpeg)
-library(tidyr)
-
-library(plyr); library(dplyr)
-
-
-#PATHNAME = "~/R/romaprojects/Webinar_ISDS"
 PATHNAME = "."
 setwd(PATHNAME)
 
 source("script2-functions.R")
-output_dir_name = "/datasets/bc_data_5percent"
 
-tr_n = 10 # 10 # number - Either the number of folds or number of resampling iterations
-tr_r = 10 # 10 # repeat - For repeated k-fold cross-validation only: the number of complete sets of folds to compute
-tr_numtree = 100 # 100
-
-data_uncertainty <- function(output_dir_name = "/datasets/bc_data_5percent", foldout_proportion = 20)
+#bc_data$classes = 'malignant', 'benign'
+data_uncertainty <- function(bc_data="none", output_dir_name = "/datasets/bc_data_5percent", foldout_proportion=1)
 {
     file_path=paste(PATHNAME, output_dir_name, sep="")
     dir.create(file_path) # file.path(mainDir, subDir))
@@ -56,12 +53,25 @@ data_uncertainty <- function(output_dir_name = "/datasets/bc_data_5percent", fol
     # to existing file. output also send to terminal. 
     mypath <- file.path(file_path, paste("report_script1_", data_file_name, ".txt", sep = ""))
     sink(mypath, append=FALSE, split=TRUE)
+
+    if (bc_data == "none") {
+      bc_data <- read_data()
+    } 
     
-    d <- read_data(proportion = foldout_proportion)
+    d <- remove_minority(bc_data, proportion = foldout_proportion)
+    
     bc_data = d$bc_data
     bc_data_missing = d$bc_data_missing
+    
     summary(bc_data)
-    ggplot(bc_data, aes(x = classes, fill = classes)) + geom_bar()
+
+    graphics.off()
+    mypath <- file.path(file_path, paste("ggplot_data.jpg", sep = "")); print(mypath)
+    myplot <- ggplot(bc_data, aes(x = classes, fill = classes)) + geom_bar()
+    print(myplot)
+    dev.copy(jpeg,filename=mypath); dev.off()
+    
+    
     
     print(file_path)
     print(summary(bc_data$classes))
@@ -76,6 +86,8 @@ data_uncertainty <- function(output_dir_name = "/datasets/bc_data_5percent", fol
     
     # Plot train vs test distributions
     # magrittr::'%>%'
+    clump_thickness = names(bc_data)[1]
+    mitosis = names(bc_data)[1]
     rbind( data.frame(group = "train", train_data), data.frame(group = "test", test_data)) %>% 
       tidyr::gather(x, y, clump_thickness:mitosis)  %>%
       ggplot(aes(x = y, color = group, fill = group)) +
@@ -117,6 +129,8 @@ data_uncertainty <- function(output_dir_name = "/datasets/bc_data_5percent", fol
     }
   
   model_rf_over <- make_model_rf(test_data, train_data, tr_n, tr_r, tr_numtree, method, par_sampling="up")
+  
+  print("==== up ==== ")
   if (exists("model_rf_over")) {
     gainsOVER <- plot_gain(model_rf_over$model, test_data, train_data, file_path=file_path, jpgname='model_over')
     gainsOVER_missing <- plot_gain(model_rf_over$model, test_data, bc_data_missing, train_name='foldout', file_path=file_path, jpgname='missing_model_over')
@@ -129,17 +143,26 @@ data_uncertainty <- function(output_dir_name = "/datasets/bc_data_5percent", fol
     cm_list<- append(cm_list, list(cm_over = model_rf_over$cm))
   }
   
-  model_rf_rose <- make_model_rf(test_data, train_data, tr_n, tr_r, tr_numtree, method, par_sampling="rose")
-  if (exists("model_rf_rose")) {
-    gainsROSE <- plot_gain(model_rf_rose$model, test_data, train_data, file_path=file_path, jpgname='model_rose')
-    gainsROSE_missing <- plot_gain(model_rf_rose$model, test_data, bc_data_missing, train_name='foldout', file_path=file_path, jpgname='mising_model_rose')
-    plot_ROC(model_rf_rose$model, test_data, train_data, file_path=file_path, jpgname='model_rf_rose')
-    print( varImp(model_rf_rose$model))
-    models <- append(models, list(rose = model_rf_rose$model))
-    #cm_rose <- model_rf_rose$cm
-    cm_list<- append(cm_list, list(cm_rose = model_rf_rose$cm))
-  }
+  print("==== rose ==== ")
+  #trycatch(
+  try(
+    {
+      model_rf_rose <- make_model_rf(test_data, train_data, tr_n, tr_r, tr_numtree, method, par_sampling="rose")
+      if (exists("model_rf_rose")) {
+        gainsROSE <- plot_gain(model_rf_rose$model, test_data, train_data, file_path=file_path, jpgname='model_rose')
+        gainsROSE_missing <- plot_gain(model_rf_rose$model, test_data, bc_data_missing, train_name='foldout', file_path=file_path, jpgname='mising_model_rose')
+        plot_ROC(model_rf_rose$model, test_data, train_data, file_path=file_path, jpgname='model_rf_rose')
+        print( varImp(model_rf_rose$model))
+        models <- append(models, list(rose = model_rf_rose$model))
+        #cm_rose <- model_rf_rose$cm
+        cm_list<- append(cm_list, list(cm_rose = model_rf_rose$cm))
+      }
+    }
+    #,error = function(cond) { message(cond) }
+    #,finally={ message("error rose") }
+  )
   
+  print("==== smote ==== ")
   model_rf_smote <- make_model_rf(test_data, train_data, tr_n, tr_r, tr_numtree, method, par_sampling="smote")
   if (exists("model_rf_smote")) {
     gainsSMOTE <- plot_gain(model_rf_smote$model, test_data, train_data, file_path=file_path, jpgname='model_smote')
@@ -153,7 +176,7 @@ data_uncertainty <- function(output_dir_name = "/datasets/bc_data_5percent", fol
   }
   
   
-  
+  print("==== glm ==== ")
   ctrl <- caret::trainControl(method = "repeatedcv",
                               number = tr_n,
                               repeats = tr_r,
@@ -210,13 +233,11 @@ print_models <- function(file_path, models, cm_list, test_data)
   #
   mypath <- file.path(file_path, paste("resample_", "all", ".jpg", sep = ""))
   print(mypath)
-  resampling <- resamples(models)
   graphics.off()
+  resampling <- resamples(models)
   my_plot = bwplot(resampling)
-  print(my_plot)
-  dev.copy(jpeg,filename=mypath)
-  dev.off()
-  print( summary(resampling, metric = "ROC") )
+  print(my_plot);  dev.copy(jpeg,filename=mypath);  dev.off()
+  #print( summary(resampling, metric = "ROC") )
   
   #
   # Plot confusion matrix metrics for 0.5-threshold
@@ -321,6 +342,12 @@ print_models <- function(file_path, models, cm_list, test_data)
   dev.off()
 }
 
+'
+d = data_uncertainty(output_dir_name = "/datasets/bc_data_20v2_percent", foldout_proportion = 5)
+print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
+mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
+save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
+
 
 d = data_uncertainty(output_dir_name = "/datasets/bc_data_2p5percent", foldout_proportion = 50)
 print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
@@ -337,11 +364,6 @@ print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, te
 mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
 save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
 
-#
-d = data_uncertainty(output_dir_name = "/datasets/bc_data_20percent", foldout_proportion = 5)
-print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
-mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
-save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
 
 #
 # save all models in my current workspace
@@ -349,4 +371,4 @@ save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
 
 mypath <- file.path("./datasets", paste("saved_workspace", ".RData", sep = ""))
 save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
-
+'
