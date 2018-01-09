@@ -55,20 +55,57 @@ cols_remove = names(d0) %in% c( "i1.EDnDL", "i1.MoPolInc", "i3.MoLaClm"
                                 , "STATE")
                                 #"i6.Ed", "i6.Gr", "VehcSz",
 # Original, NON-DICRETIZED 
-cols_remove_importfatures = names(d0) %in% c("i3.ES","i1.TCA", "Location.Code" 
-                                             ,"i6.Ed","i6.Gr", "VehcSz", "i6.VC", "i6.MS" ,"i6.SC"
-                                             #, "i4.ROT"
-                                             , "i1.EDnDL", "i1.MoPolInc", "i3.MoLaClm"
-                                             , "i5.NoOC",  "PoT", "Po", "STATE"
+cols_remove_importfatures = names(d0) %in% c("i3.ES", "Location.Code" #i1.TCA
+                                             ,"i6.Ed","i6.Gr", "VehcSz", "i6.VC"
+                                             , "i4.ROT", "i6.MS" ,"i6.SC"
+                                             #, "i1.EDnDL", "i1.MoPolInc", "i3.MoLaClm"
+                                             #, "i5.NoOC",  "PoT", "Po", "STATE"
                                              )
-d_no_ROT <- d0[ !cols_remove_importfatures ]
-d = data_uncertainty(bc_data = d_no_ROT, output_dir_name = "/datasets/emailmarketing-nondiscretized-remove-important", foldout_proportion = 2)
+'
+## Very easy  preidciton
+summary(d0_discretize$i1.Inc)
+d0_i1 = d0_discretize[ d0_discretize$i1.Inc == "[-100,3.33e+04]" , ]
+summary(d0_i1$i1.TCA)
+d0_i1 = d0_i1[ d0_i1$i1.TCA == "[-2.79,964]", ] # very easy prediction
+
+cols_remove_importfatures = names(d0_i1) %in% c("i1.TCA", "i1.Inc")
+d_no_ROT = d0_i1[!cols_remove_importfatures]
+
+## Very bad preidciton
+summary(d0_discretize$i1.CLfV)
+d0_i1 = d0_discretize[ d0_discretize$i1.CLfV == "[1.82e+03,2.9e+04]",] 
+cols_remove_importfatures = names(d0_i1) %in% c("i1.CLfV")
+d_no_ROT = d0_i1[!cols_remove_importfatures]
+
+## Very bad preidciton
+summary(d0_discretize$i1.EDnDL)
+d0_i1 = d0_discretize[ d0_discretize$i1.EDnDL == "[5.94,25.3]",] 
+cols_remove_importfatures = names(d0_i1 ) %in% c("i1.EDnDL")
+d_no_ROT = d0_i1[!cols_remove_importfatures]
+'
+# DICRETIZED 
+d = data_uncertainty(bc_data = d0_discretize, output_dir_name = "/datasets/emailmarketing-discretized", foldout_proportion = 2)
 print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
 mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
 save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
 
-d_no_ROT <- d0[ !cols_remove ]
-d = data_uncertainty(bc_data = d_no_ROT, output_dir_name = "/datasets/emailmarketing-without-offertype-nondiscretized", foldout_proportion = 2)
+d = data_uncertainty(bc_data = d0_discretize[ !cols_remove ], output_dir_name = "/datasets/emailmarketing-discretized-remove-nonimportant", foldout_proportion = 2)
+print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
+mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
+save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
+
+d = data_uncertainty(bc_data = d0[ !cols_remove_importfatures ], output_dir_name = "/datasets/emailmarketing-nondiscretized-remove-important", foldout_proportion = 2)
+print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
+mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
+save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
+
+d = data_uncertainty(bc_data = d0_discretize[ !cols_remove_importfatures ], output_dir_name = "/datasets/emailmarketing-discretized-remove-important", foldout_proportion = 2)
+print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
+mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
+save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
+
+
+d = data_uncertainty(bc_data = d0[ !cols_remove ], output_dir_name = "/datasets/emailmarketing-nondiscretized-remove-nonimportant", foldout_proportion = 2)
 print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
 mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
 save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
@@ -79,16 +116,4 @@ mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
 save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
 
 
-# DICRETIZED 
-d = data_uncertainty(bc_data = d0_discretize, output_dir_name = "/datasets/emailmarketing-discretized", foldout_proportion = 2)
-print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
-mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
-save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
-
-d_no_ROT <- d0_discretize[ !cols_remove ]
-
-d = data_uncertainty(bc_data = d_no_ROT, output_dir_name = "/datasets/emailmarketing-without-offertype-discretized", foldout_proportion = 2)
-print_models(file_path = d$file_path, models = d$models, cm_list = d$cm_list, test_data = d$test_data)
-mypath <- file.path(d$file_path, paste("saved_workspace", ".RData", sep = ""))
-save(list = ls(all.names = TRUE), file = mypath, envir = .GlobalEnv)
 
