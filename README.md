@@ -1,5 +1,8 @@
 ## An Insight into Data Quality: More Data Equals More Work, But Not Necessarily a Better Model
 
+### Here is my next reproducibale post on Bayesian ML:
+https://github.com/romanonly/advancedanalytics/blob/master/Bayesian%20Learning.md
+
 ## Introduction
 In the field of data quality and predictive modeling, which modeling metrics are best at “telling the truth,” so to speak?
 
