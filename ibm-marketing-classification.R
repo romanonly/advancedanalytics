@@ -143,12 +143,85 @@ cols_remove_BL = names(d0) %in% c("i3.ES",
                                  #, "i1.EDnDL", "i1.MoPolInc", "i3.MoLaClm"
                                  #, "i5.NoOC",  "PoT", "Po", "STATE"
 
+# important by ML only
+cols_remove_9ML_only = names(d0) %in% c("i1.TCA" #                100.000
+                                       , "i1.CLfV" #                89.003
+                                       , "i1.Inc" #                 87.462
+                                       
+                                       , "i1.EDnDL" #               81.336
+                                       , "i1.MoPolInc" #             80.185
+                                       , "i4.ROT" #           78.624
+                                       
+                                       , "i3.MpPreAu" #             72.713
+                                       , "i3.MoLaClm" #             70.466
+                                       , "i3.ES" #           60.288
+                                       ) # 9 features                                       
+
+cols_remove_14ML_only = names(d0) %in% c("i1.TCA" #                100.000
+                                        , "i1.CLfV" #                89.003
+                                        , "i1.Inc" #                 87.462
+                                        
+                                        , "i1.EDnDL" #               81.336
+                                        , "i1.MoPolInc" #             80.185
+                                        , "i4.ROT" #           78.624
+                                        
+                                        , "i3.MpPreAu" #             72.713
+                                        , "i3.MoLaClm" #             70.466
+                                        , "i3.ES" #           60.288
+
+                                       , "i3.NoP" #                 28.276
+                                       , "Location.Code" #  26.319
+                                       , "i6.MS" #            23.845
+                                       , "i6.Ed" #            19.349
+                                       , "i6.SC" #i6.SCBranch            16.944
+                                       #i5.NoOC                16.818
+                                       )
+
+# important by BL only
+cols_remove_9BL_only = names(d0) %in% c("i1.TCA"
+                                       , "i1.Inc"
+                                       , "i3.ES"
+                                       
+                                       , "i6.MS"
+                                       , "i4.ROT"
+                                       , "i6.SC" # 6 features - 1st order links
+                                       
+                                       , "Location.Code"
+                                       , "i6.VC"
+                                       , "i3.MpPreAu" #3 2nd order features
+                                       ) # 9 features
+
+cols_remove_14BL_only = names(d0) %in% c("i1.TCA"
+                                        , "i1.Inc"
+                                        , "i3.ES"
+                                        
+                                        , "i6.MS"
+                                        , "i4.ROT"
+                                        , "i6.SC" # 6 features - 1st order links
+                                        
+                                        , "Location.Code"
+                                        , "i6.VC"
+                                        , "i3.MpPreAu" #3 2nd order features
+                                        
+                                        , "i6.Cov"
+                                        , "i1.CLfV"
+                                        , "i6.Ed"
+                                        , "i6.Gr"
+                                        , "VehcSz"
+                                        ) # 13 features
+
+
 cols_remove_none = names(d0) %in% c()
                                   
-cols_remove_list = list("remove_none" = cols_remove_none, 
-                        "cols_remove_ML" = cols_remove_ML, 
-                        "cols_remove_BL"=cols_remove_BL
+cols_remove_list = list(#"remove_none" = cols_remove_none, 
+                        #"cols_remove_ML" = cols_remove_ML, 
+                        #"cols_remove_BL"=cols_remove_BL
+                        #"cols_remove_9ML_only" = cols_remove_9ML_only
+                        #, "cols_remove_9BL_only" = cols_remove_9BL_only
+                        "cols_remove_14ML_only" = cols_remove_14ML_only
+                        , "cols_remove_14BL_only" = cols_remove_14BL_only
                         )
+print (colnames(d0[cols_remove_14ML_only != cols_remove_14BL_only]))
 
 for (i in names(cols_remove_list)) { 
   print (i); 
