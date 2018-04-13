@@ -1,9 +1,11 @@
-## An Insight into Data Quality: More Data Equals More Work, But Not Necessarily a Better Model
-
-### Here is my next reproducibale post on Bayesian ML:
+### Here are my other reproducibaleposts
+#### Bayesian Machine Learning
 https://github.com/romanonly/advancedanalytics/blob/master/Bayesian%20Learning.md
+#### Extending Deep Learning with Physics
+https://github.com/romanonly/advancedanalytics/blob/master/modeling/README.md
 
-## Introduction
+## An Insight into Data Quality: More Data Equals More Work, But Not Necessarily a Better Model
+### Introduction
 In the field of data quality and predictive modeling, which modeling metrics are best at “telling the truth,” so to speak?
 
 How did I come to this question? I looked at the metric that’s the most well-known and popular in machine learning, and was surprised by what I found. It showed the best result--the best accuracy---for the lowest quality dataset! After that, I used two metrics that aren’t very popular or well-known, but these two metrics were able to correctly point to the best and worst datasets.
