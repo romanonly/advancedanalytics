@@ -1,4 +1,4 @@
-### Here are my other reproducibaleposts
+### Here are my other reproducibale posts
 #### Bayesian Machine Learning
 https://github.com/romanonly/advancedanalytics/blob/master/Bayesian%20Learning.md
 #### Extending Deep Learning with Physics
