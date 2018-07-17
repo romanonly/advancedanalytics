@@ -1,3 +1,16 @@
+split_data<-function(data, split_ratio = 0.8, is_timesorted_vs_sample = FALSE)
+{
+  n = floor(split_ratio*nrow(data))
+  if (is_timesorted_vs_sample) {
+    train_index = 1:n # take latest weeks 
+  } else {
+    train_index = sample(nrow(data),n)
+  }
+  dtrain = data[train_index,]
+  dtest = data[-train_index,]
+  return (list(dtrain=dtrain, dtest=dtest))
+}
+
 plot_hist<-function(dd)
 {
   graphics.off()
@@ -26,7 +39,7 @@ replace_log_transformation <- function(dd)
       hist( (dd[,nm]),main=nm) #log makes more gaussian
       if (nm %in% col_num_outliers) {
         nm1 = nm#paste(nm, "_log", sep="")
-        dd[, nm1] = log(1.0 + dd[, nm])
+        dd[, nm1] = log(1.0 + dd[, nm] - min(dd[, nm]))
       }
     }
   }
@@ -195,7 +208,9 @@ pca_numerical<-function(pcadata=pcadata, labels=labels,
   #apply(sc_pcadata,2,var) #check the variance accross the variables
   mean_var = sum( apply(sc_pcadata,2,var) ) / ncol(sc_pcadata)
   print(paste(" mean_var after scaling = ", as.character(mean_var)))
-  if(1e-6 < abs(1.0 - mean_var)) { print(paste("*** error mean_var=", mean_var, sep=""))}
+  if(1e-6 < abs(1.0 - mean_var)) { 
+    print(paste("*** error mean_var=", mean_var, sep=""))
+  }
   
   
   pca =prcomp(pcadata, scale = T, center = T) 
