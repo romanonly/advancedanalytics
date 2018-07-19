@@ -23,16 +23,17 @@ convert_to_pca<-function(train, num_pca=10,pca=NULL) {
   return (list(dpca=dpca, pca=pca))
 }
 
-is_apply_pca = TRUE
+is_apply_pca = FALSE
+
 main <- function()
 {
   #=== create folder for test data: save test data in folder:
-  file_path_datatotest="./data_to_test_0023"
+  file_path_datatotest="./data_to_test_0024"
   file_log = make_dir_sink_log_txt(file_path_datatotest)
   #============
   readdata = read_train_submit_data()
   #===== prepare train-test data and submit data: apply same transormation
-  ret = split_data(readdata$dtrain, split_ratio = 0.7, is_timesorted_vs_sample = FALSE)
+  ret = split_data(readdata$dtrain, split_ratio = 0.8, is_timesorted_vs_sample = FALSE)
   rtrain=data_transformation(ret$dtrain)
   rtest=data_transformation(ret$dtest)
   rsubmit=data_transformation(readdata$dsubmit)
@@ -65,7 +66,7 @@ main <- function()
   
   r1 = run_modeling(train
                     , valid
-                    , file_path="./datasets1_023_log"
+                    , file_path="./datasets1_024_log"
                     , jpgname="_nofactors"
                     , hidden_layers=c(10,10))
   
@@ -96,8 +97,9 @@ main <- function()
   plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset_freq")
   
   r2 = run_modeling(train, valid, 
-                    file_path="./datasets3_023_log", 
-                    jpgname="_freq")
+                    file_path="./datasets3_024_log", 
+                    jpgname="_freq"
+                    , hidden_layers=c(10,10))
   temp = data_to_test_compare(train, submit, r2)
   df2 = data_to_test(r2, submit)
   write.csv(df2, file = paste(file_path_datatotest, "/df2.csv",sep=""))
@@ -134,8 +136,9 @@ main <- function()
   plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset_freq")
   
   r3 = run_modeling(train, valid, 
-                    file_path="./datasets4_023_log", 
-                    jpgname="_response_target")
+                    file_path="./datasets4_024_log", 
+                    jpgname="_response_target"
+                    , hidden_layers=c(10,10))
   temp = data_to_test_compare(train, submit, r3)
   df3 = data_to_test(r3, submit)
   write.csv(df3, file = paste(file_path_datatotest, "/df3.csv",sep=""))
@@ -179,9 +182,9 @@ main <- function()
   plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset_freq")
   
   r5 = run_modeling(train, valid
-                    ,file_path="./datasets6_023_log"
+                    ,file_path="./datasets6_024_log"
                     ,jpgname="_response_target_05"
-                    , hidden_layers=c(50,25,15))
+                    , hidden_layers=c(50,20))
   temp = data_to_test_compare(train, submit, r5)
   df5 = data_to_test(r5, submit)
   write.csv(df5, file = paste(file_path_datatotest, "/df5.csv",sep=""))

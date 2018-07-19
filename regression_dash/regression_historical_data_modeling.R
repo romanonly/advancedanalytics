@@ -92,25 +92,31 @@ modeling_result_plot<-function(model_gbm, dtest, dtrain,file_path, jpgname){
 pred_errors<-function(predictions, dtest_Target)
 {
   t = dtest_Target
+  dt = abs(predictions-t)
+  err2 = sqrt(sum(dt*dt)/length(predictions))
+  err = sum(dt)/length(predictions)
+  err_median = median(dt)
+  
   et = exp(t)
-  
-  err = sum(abs(predictions-t))/length(predictions)
-  err_median = median(abs(predictions-t))
-  
-  err_exp = sum(abs(exp(predictions)-et))/length(predictions)
-  err_exp_rel = sum( abs(exp(predictions)-et)/et) /length(predictions)
-  err_exp_median = median(abs(exp(predictions)-et))
+  expt = exp(predictions)
+  dexpt = abs(expt-et)
+  err_exp2 = sqrt(sum(dexpt*dexpt)/length(predictions))
+  err_exp = sum(dexpt)/length(predictions)
+  err_exp_rel = sum( dexpt/et) /length(predictions)
+  err_exp_median = median(dexpt)
   
   #err = formatC(x, digits = 8, format = "f") # format(round(err, 2), nsmall = 2)
+  err2 = sprintf(err2, fmt = '%#.2f')
   err = sprintf(err, fmt = '%#.2f')
   err_median = sprintf(err_median, fmt = '%#.2f')
   
+  err_exp2 = sprintf(err_exp2, fmt = '%#.0f')
   err_exp = sprintf(err_exp, fmt = '%#.0f')
   err_exp_rel = sprintf(err_exp_rel, fmt = '%#.2f')
   err_exp_median = sprintf(err_exp_median, fmt = '%#.0f')
   
-  print(paste("error: mean, median, relative=", err_exp, err_exp_median, err_exp_rel, "log mean, median=", err, err_median, sep=" "))
-  return (list(err=err, err_median=err_median, err_exp=err_exp, err_exp_rel=err_exp_rel, err_exp_median=err_exp_median))
+  print(paste("error: mse, mean, median, relat=", err_exp2, err_exp, err_exp_median, err_exp_rel, "log mse, mean, median=", err2, err, err_median, sep=" "))
+  return (list(err2=err2, err=err, err_median=err_median, err_exp=err_exp, err_exp_rel=err_exp_rel, err_exp_median=err_exp_median))
 }
 pred_print<-function(model_gbm0, dtest)
 {

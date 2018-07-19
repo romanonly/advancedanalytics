@@ -119,7 +119,7 @@ run_model<-function(dtrain=NULL,dtest=NULL,jpgname=NULL,file_path=NULL,hidden_la
   d_factors = data[names(data) %in% col_num_factors]
   
   labels = as.numeric(d_numerical_only$Target - min(d_numerical_only$Target))
-  labels = 1 + as.integer(5 * labels / max(labels))
+  labels = 1 + as.integer(20 * labels / max(labels))
   #if ("order_protocol" %in% names(d_factors)) { labels = d_factors$order_protocol }
   jpgname = "_numerical"
   ret = pca_numerical(pcadata=d_numerical_only, labels=labels, num_pca_comps = 10);  
