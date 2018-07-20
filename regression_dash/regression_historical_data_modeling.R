@@ -4,11 +4,20 @@ model_params0$tr_is_repeatedcv_vs_oob = "repeatedcv" #"oob"
 model_params0$tr_n = 5
 model_params0$tr_r = 2
 
+#
+# Main parameters:
+#
+# model_params0$gbm.n.trees = c(10) #1000) # c(50,100) #c(25,50)
+## Stop once the top 5 models are within 1% of each other (i.e., the windowed average varies less than 1%)
+#search_criteria = list(strategy = "RandomDiscrete", max_runtime_secs = 3600, max_models = 1000, seed=1234567, stopping_rounds=5, stopping_tolerance=1e-2)
+#  epochs=500,
+  
+
 # RMSE       Rsquared   MAE = 0.3,0.3,0.237
 model_params0$gbm.interaction.depth = c(5)#(5) # c(3,5)#c(1,3)
-model_params0$gbm.n.trees = c(100) #1000) # c(50,100) #c(25,50)
+model_params0$gbm.n.trees = c(500) #1000) # c(50,100) #c(25,50)
 model_params0$gbm.n.minobsinnode = c(100,200) # c(100,300) #c(10,100)
-model_params0$gbm.shrinkage = c(0.2) # c(0.1, 0.2, 0.3)
+model_params0$gbm.shrinkage = c(0.2, 0.3) # c(0.1, 0.2, 0.3)
 
 model_params0$glm.parameter = c(0.1, 1e-3, 1e-5, 1e-8) # c(0.1, 0.2, 0.3)
 
@@ -63,7 +72,7 @@ modeling <- function(dtrain, method_name = "gbm", model_params=model_params0)
                                 ,trControl = ctrlGbm
                                 , tuneGrid = gGrid
       ),
-    warning = function(w) {print(paste(" MYEXCEPTIONwarning ", w)); },
+    #warning = function(w) {print(paste(" MYEXCEPTIONwarning ", w)); },
     error = function(e) {print(paste(" MYEXCEPTION: error", e));  NaN})
   
   
@@ -93,16 +102,18 @@ pred_errors<-function(predictions, dtest_Target)
 {
   t = dtest_Target
   dt = abs(predictions-t)
-  err2 = sqrt(sum(dt*dt)/length(predictions))
-  err = sum(dt)/length(predictions)
+  
+  n = length(dt)
+  err2 = sqrt(sum(dt*dt)/n)
+  err = sum(dt)/n
   err_median = median(dt)
   
   et = exp(t)
   expt = exp(predictions)
   dexpt = abs(expt-et)
-  err_exp2 = sqrt(sum(dexpt*dexpt)/length(predictions))
-  err_exp = sum(dexpt)/length(predictions)
-  err_exp_rel = sum( dexpt/et) /length(predictions)
+  err_exp2 = sqrt(sum(dexpt*dexpt)/n)
+  err_exp = sum(dexpt)/n
+  err_exp_rel = sum( dexpt/et) / n
   err_exp_median = median(dexpt)
   
   #err = formatC(x, digits = 8, format = "f") # format(round(err, 2), nsmall = 2)
@@ -120,9 +131,12 @@ pred_errors<-function(predictions, dtest_Target)
 }
 pred_print<-function(model_gbm0, dtest)
 {
-  predictions<-predict.train(object=model_gbm0,dtest,type="raw")
-  #table(predictions)
-  ret=pred_errors(predictions, dtest$Target)
+  predictions = NULL
+  if (!is.null(model_gbm0)) {
+    predictions<-predict.train(object=model_gbm0,dtest,type="raw")
+    #table(predictions)
+    ret=pred_errors(predictions, dtest$Target)
+  }
   return(predictions)
 }
 modeling_result_print<-function(model_gbm0, dtest, dtrain){
@@ -136,7 +150,7 @@ modeling_result_print<-function(model_gbm0, dtest, dtrain){
     pred_train=pred_print(model_gbm0, dtrain)
     #VarImp
     print(model_gbm0)  
-    print(varImp(object=model_gbm0))
+    #print(varImp(object=model_gbm0))
   }
   return (list(pred_train=pred_train, pred_test=pred_test))
 }
@@ -169,9 +183,44 @@ train_deep_learning_h2o <- function(dtrain, dtest, hidden_layers=c(6,6),jpgname,
 
   response <- "Target"
   
-  m2 <- h2o.deeplearning(
-    model_id="dl_model_faster", 
-    training_frame=train, 
+  grid = NULL
+  m2 = NULL
+  
+  'hyper_params <- list(
+    hidden=list(c(32,32,32),c(64,64),c(10,10,10),c(10,20)),
+    input_dropout_ratio=c(0,0.01,0.05),
+    rate=c(0.01,0.02,0.03),
+    rate_annealing=c(1e-8,1e-7,1e-6,1e-4)
+  )
+  hyper_params'
+  hyper_params <- list(
+    activation=c("Maxout","RectifierWithDropout"),#,"Rectifier","Tanh","TanhWithDropout","MaxoutWithDropout"),
+    hidden=list(c(20), c(20,20),c(50,50),c(30,30,30),c(25,25,25,25)),
+    input_dropout_ratio=c(0)#,0.05, 0.2),
+    ,rate=c(0.01,0.02,0.03)
+    ,l1=seq(0, 1e-4, 1e-6)
+    #l2=seq(0,1e-4,1e-6)
+  )
+  #hyper_params
+  
+  ## Stop once the top 5 models are within 1% of each other (i.e., the windowed average varies less than 1%)
+  search_criteria = list(strategy = "RandomDiscrete", max_runtime_secs = 7200, max_models = 1000, seed=1234567, stopping_rounds=5, stopping_tolerance=1e-2)
+  #search_criteria = list(strategy = "RandomDiscrete", max_runtime_secs = 60, max_models = 100, seed=1234567, stopping_rounds=5, stopping_tolerance=1e-2)
+  
+    
+  grid <- h2o.grid(
+    algorithm="deeplearning",
+    grid_id="dl_grid", 
+    hyper_params = hyper_params,
+    search_criteria = search_criteria,
+    epochs=500
+    
+  #m2 <- h2o.deeplearning(
+    #model_id="dl_model_faster", 
+    #hidden=hidden_layers, #c(6,6,6), #32,32,32),                  ## small network, runs faster
+    #epochs=200,#1000000,                      ## hopefully converges earlier...
+  
+    ,training_frame=train, 
     validation_frame=valid, 
     x=predictors,
     y=response,
@@ -179,25 +228,53 @@ train_deep_learning_h2o <- function(dtrain, dtest, hidden_layers=c(6,6),jpgname,
     #activation="Rectifier",  ## default
     #activation="RectifierWithDropout",
     #input_dropout_ratio=0.05,
-    hidden=hidden_layers, #c(6,6,6), #32,32,32),                  ## small network, runs faster
-    epochs=200,#1000000,                      ## hopefully converges earlier...
+  
+    
     score_validation_samples=5000, #10000,      ## sample the validation dataset (faster)
     stopping_rounds=5,
     stopping_metric="MSE", #misclassification", ## could be "MSE","logloss","r2"
     stopping_tolerance=0.01
-    ,l1=1e-5,
-    l2=1e-5,
+    #,l1=1e-5
+    ,l2=1e-5,
     max_w2=10                       ## helps stability for Rectifier
-    ,   nfolds=5 #N+1 models will be built: 1 full training data, and N models with each 1/N-th of the data held out 
-    , fold_assignment="Modulo" # can be "AUTO", "Modulo", "Random" or "Stratified"
+  
+    , score_duty_cycle=0.025         ## don't score more than 2.5% of the wall time
+    #,nfolds=5 #N+1 models will be built: 1 full training data, and N models with each 1/N-th of the data held out 
+    #, fold_assignment="Modulo" # can be "AUTO", "Modulo", "Random" or "Stratified"
     ,standardize = TRUE
   )
   
+  if (!is.null(grid)) {
+    grid <- h2o.getGrid("dl_grid",sort_by="MSE",decreasing=FALSE)
+    #grid
+  
+    ## To see what other "sort_by" criteria are allowed
+    #grid <- h2o.getGrid("dl_grid",sort_by="wrong_thing",decreasing=FALSE)
+    
+    ## Sort by logloss
+    #h2o.getGrid("dl_grid",sort_by="logloss",decreasing=FALSE)
+  
+    ## Find the best model and its full set of parameters
+    print("********************* grid@summary_table[1,] ************** ")
+    print("********************* grid@summary_table[1,] ************** ")
+    print("********************* grid@summary_table[1,] ************** ")
+    print( grid@summary_table[1,] )
+    best_model <- h2o.getModel(grid@model_ids[[1]])
+    print("******************* best_model")
+    #print(best_model)
+  
+    #print(best_model@allparameters)
+    #print(h2o.performance(best_model, valid=T))
+    #print(h2o.logloss(best_model, valid=T))
+    
+    m2 = best_model
+  }
+
   path <- h2o.saveModel(m2, path=paste(file_path,"/h2o_best_deeplearning_model", sep=""), force=TRUE); print(path)
   #m_loaded <- h2o.loadModel(path)
   #summary(m_loaded)
   
-  print(head(as.data.frame(h2o.varimp(m2))))
+  #print(head(as.data.frame(h2o.varimp(m2))))
   
   print(summary(m2))
   
@@ -229,16 +306,22 @@ train_deep_learning_h2o <- function(dtrain, dtest, hidden_layers=c(6,6),jpgname,
   
   return(list(model_h2o=m2, train_pred=pred_train_h20_df$predict, test_pred=pred_test_h20_df$predict))  
 }
+
 modeling_ensemble <- function(dtrain, dtest, split_ratio=0.8, 
                               is_timesorted_vs_sample=TRUE,
                               hidden_layers=c(6,6,6)
                               ,file_path, jpgname)
 {
-  h2o_model <- train_deep_learning_h2o(dtrain, dtest, hidden_layers,jpgname,file_path) 
+  h2o_model <- train_deep_learning_h2o(dtrain, dtest, hidden_layers,jpgname,file_path)
   
+  if (!is.null(h2o_model)) { 
+    dtrain_ensemble = data.frame("h2o"=h2o_model$train_pred)
+    dtest_ensemble = data.frame("h2o"=h2o_model$test_pred)
+  }
   #Multicore
   library(doParallel)
-  cl <- makeCluster(detectCores())
+  no_cores <- detectCores() - 1
+  cl <- makeCluster(no_cores, outfile=paste0('./info_parallel.log'))
   registerDoParallel(cl)
   
   model_gbm = modeling(dtrain, method_name = "gbm", model_params=model_params0)
@@ -250,10 +333,20 @@ modeling_ensemble <- function(dtrain, dtest, split_ratio=0.8,
   modeling_result_plot(model_glm, dtest, dtrain,file_path, jpgname)
   
   stopCluster(cl)
+  registerDoSEQ()
   
-  #ensemble
-  dtrain_ensemble = data.frame("h2o"=h2o_model$train_pred, "glm"=pred_glm$pred_train, "gbm"=pred_gbm$pred_train, "Target"=dtrain$Target)#, "rf"=pred_rf$pred_train,
-  dtest_ensemble = data.frame("h2o"=h2o_model$test_pred, "glm"=pred_glm$pred_test, "gbm"=pred_gbm$pred_test, "Target"=dtest$Target)#,"rf"=pred_rf$pred_test, 
+  dtrain_ensemble$Target=dtrain$Target
+  dtest_ensemble$Target =dtest$Target
+  
+  if (!is.null(model_glm)) { 
+    dtrain_ensemble$glm=pred_glm$pred_train 
+    dtest_ensemble$glm = pred_glm$pred_test
+  }
+  if (!is.null(model_gbm)) { 
+    dtrain_ensemble$gbm=pred_gbm$pred_train
+    dtest_ensemble$gbm = pred_gbm$pred_test
+  }
+  
   jpgname = "_dtrain_ensemble"
   plot_corr(dtrain_ensemble,file_path, jpgname)  
   jpgname = "_dtest_ensemble"

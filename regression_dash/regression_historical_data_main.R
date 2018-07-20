@@ -23,21 +23,88 @@ convert_to_pca<-function(train, num_pca=10,pca=NULL) {
   return (list(dpca=dpca, pca=pca))
 }
 
-is_apply_pca = FALSE
+experement<-function(train, valid, submit
+                     ,num_pca
+                     ,file_path_datatotest
+                     ,df_name="df7.csv"
+                     ,file_path="./datasets7_024_log"
+                     ,jpgname="_freq_hotkey")
+{
+  stopifnot(0 == sum(names(train) != names(valid)))
+  stopifnot(1 ==sum(!names(train) %in% names(submit)))
+  
+  stopifnot(ncol(train) == ncol(valid))
+  stopifnot(ncol(train) == ncol(submit)) # submit: has no Target but row-id
+  
+  if (num_pca > 0) {
+    rpca_train = convert_to_pca(train, num_pca=num_pca,pca=NULL)
+    train = rpca_train$dpca
+    valid = convert_to_pca(valid, num_pca=num_pca,pca=rpca_train$pca)$dpca
+    submit = convert_to_pca(submit, num_pca=num_pca,pca=rpca_train$pca)$dpca
+  }
+  stopifnot(0 == sum(names(train) != names(valid)))
+  stopifnot(1 ==sum(!names(train) %in% names(submit)))
+  
+  r7 = run_modeling(train, valid
+                    #,train[sample(nrow(train),10000),], valid[sample(nrow(valid),5000),]
+                    ,file_path=file_path#"./datasets7_025_log"
+                    ,jpgname=jpgname
+                    , hidden_layers=c(40))
+  temp = data_to_test_compare(train, submit, r7)
+  df7 = data_to_test(r7, submit)
+  write.csv(df7, file = paste(file_path_datatotest, df_name,sep="/"))  
+  
+  plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_submit")
+  plot_hist(train[names(train) %in% get_num_variables_list(train)],file_path_datatotest, jpgname="_outliers_train")
+  plot_hist(valid[names(valid) %in% get_num_variables_list(valid)],file_path_datatotest, jpgname="_outliers_valid")
+  
+  return(list(df=df7, r=r7, train=train, valid=valid, valid=valid))    
+}
+
+num_pca = 0
 
 main <- function()
 {
   #=== create folder for test data: save test data in folder:
-  file_path_datatotest="./data_to_test_0024"
+  file_path_datatotest="./data_to_test_0026"
   file_log = make_dir_sink_log_txt(file_path_datatotest)
   #============
   readdata = read_train_submit_data()
   #===== prepare train-test data and submit data: apply same transormation
-  ret = split_data(readdata$dtrain, split_ratio = 0.8, is_timesorted_vs_sample = FALSE)
+  ret = split_data(readdata$dtrain, split_ratio = 0.7, is_timesorted_vs_sample = FALSE)
   rtrain=data_transformation(ret$dtrain)
   rtest=data_transformation(ret$dtest)
   rsubmit=data_transformation(readdata$dsubmit)
+
+  #==========================
+  # Expirement 11: 
+  # convert factors to one-hot encoding features
+  # three data sets: train, validation (with Target) and resulting test (no Target)
+  train = rtrain$d_Target_responses_freq
+  valid = rtest$d_Target_responses_freq
+  submit=rsubmit$d_Target_responses_freq
   
+  print (paste(" names in TRAIN and not in SUBMIT = ",names(train)[!names(train) %in% names(submit)],sep=""))
+  print (paste(" names in SUBMIT and not in TRAIN = ",names(submit)[!names(submit) %in% names(train)],sep=""))
+  
+  # make one hot encoding
+  train=cat_to_one_hot(train)
+  # make sure to have same labels in test and train and submit data 
+  valid <- extend_levels_in_factors(train, valid)
+  valid=cat_to_one_hot(valid)
+  # make sure to have same labels in test and train and submit data 
+  submit <- extend_levels_in_factors(train, submit)
+  submit=cat_to_one_hot(submit)
+
+  ret_experement7 <- experement(
+    train, valid
+    #train[sample(nrow(train),1000),], valid[sample(nrow(valid),1000),]
+                                ,submit,
+                                num_pca,file_path_datatotest
+                               ,df_name="df7.csv"
+                               ,file_path="./datasets7_026_log"
+                               ,jpgname="_freq_hotkey7")
+    
   #===============================
   # Expirement 1: 
   # factor predictors removed
@@ -47,64 +114,35 @@ main <- function()
   # make sure to have same labels in test data, as in train data 
   submit <- extend_levels_in_factors(train, submit)
 
-  hist(train$Target)
-  hist(test$Target)
+  ret_experement1 <- experement(
+    train, valid
+    #train[sample(nrow(train),2000),], valid[sample(nrow(valid),2000),]
+                                , submit
+                                ,num_pca,file_path_datatotest
+                                ,df_name="df1.csv"
+                                ,file_path="./datasets1_026_log"
+                                ,jpgname="_target1")
   
-  if (is_apply_pca) {
-    num_pca = 10
-    rpca_train = convert_to_pca(train, num_pca=num_pca,pca=NULL)
-    train = rpca_train$dpca
-    valid = convert_to_pca(valid, num_pca=num_pca,pca=rpca_train$pca)$dpca
-    submit = convert_to_pca(submit, num_pca=num_pca,pca=rpca_train$pca)$dpca
-  }
-  
-  stopifnot(0 == sum(names(train) != names(valid)))
-  stopifnot(1 ==sum(!names(train) %in% names(submit)))
-  #plot histograms of predictors
-  plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset")
-  
-  
-  r1 = run_modeling(train
-                    , valid
-                    , file_path="./datasets1_024_log"
-                    , jpgname="_nofactors"
-                    , hidden_layers=c(10,10))
-  
-  temp = data_to_test_compare(train, submit, r1)
-  df1 = data_to_test(r1, submit)
-  write.csv(df1, file = paste(file_path_datatotest, "/df1.csv",sep=""))
   # ==========================================
-  # Expirement 3: factor predictors - to replace with frequencies
+  # Expirement 2: factor predictors - to replace with frequencies
   train = rtrain$d_Target_responses_freq
   valid = rtest$d_Target_responses_freq
   submit = rsubmit$d_Target_responses_freq
   # make sure to have same labels in test data, as in train data 
   submit <- extend_levels_in_factors(train, submit)
   
-  stopifnot(ncol(train) == ncol(valid))
-  stopifnot(ncol(train) == ncol(submit)) # submit: has no Target but row-id
+  ret_experement2 <- experement(
+    train, valid
+    #train[sample(nrow(train),2000),], valid[sample(nrow(valid),1000),]
+                                , submit,
+                                num_pca,file_path_datatotest
+                                ,df_name="df2.csv"
+                                ,file_path="./datasets2_026_log"
+                                ,jpgname="_target_freq2")
+  
 
-  if (is_apply_pca) {
-    num_pca = 17
-    rpca_train = convert_to_pca(train, num_pca=num_pca,pca=NULL)
-    train = rpca_train$dpca
-    valid = convert_to_pca(valid, num_pca=num_pca,pca=rpca_train$pca)$dpca
-    submit = convert_to_pca(submit, num_pca=num_pca,pca=rpca_train$pca)$dpca
-  }
-  stopifnot(0 == sum(names(train) != names(valid)))
-  stopifnot(1 ==sum(!names(train) %in% names(submit)))
-  
-  plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset_freq")
-  
-  r2 = run_modeling(train, valid, 
-                    file_path="./datasets3_024_log", 
-                    jpgname="_freq"
-                    , hidden_layers=c(10,10))
-  temp = data_to_test_compare(train, submit, r2)
-  df2 = data_to_test(r2, submit)
-  write.csv(df2, file = paste(file_path_datatotest, "/df2.csv",sep=""))
   #===============
-  # Expirement 4: group by factors into new Target-derived features
+  # Expirement 3: group by factors into new Target-derived features
   train <- rtrain$d_Target_responses_freq
   
   # factors - to be computed using TRAN only, and added to VALID and SUBMIT
@@ -120,74 +158,15 @@ main <- function()
   submit <- extend_levels_in_factors(train, submit)
   submit<-add_factors_response_target(submit, factors)
   
-  stopifnot(ncol(train) == ncol(valid))
-  stopifnot(ncol(train) == ncol(submit)) # submit: has no Target but row-id
+  ret_experement3 <- experement(
+    train, valid
+    #train[sample(nrow(train),25000),], valid[sample(nrow(valid),10000),]    
+                                , submit,
+                                num_pca,file_path_datatotest
+                                ,df_name="df3.csv"
+                                ,file_path="./datasets3_026_log"
+                                ,jpgname="_target_freq_meantarget3")
 
-  if (is_apply_pca) {
-    num_pca = 22
-    rpca_train = convert_to_pca(train, num_pca=num_pca,pca=NULL)
-    train = rpca_train$dpca
-    valid = convert_to_pca(valid, num_pca=num_pca,pca=rpca_train$pca)$dpca
-    submit = convert_to_pca(submit, num_pca=num_pca,pca=rpca_train$pca)$dpca
-  }
-  stopifnot(0 == sum(names(train) != names(valid)))
-  stopifnot(1 ==sum(!names(train) %in% names(submit)))
-  
-  plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset_freq")
-  
-  r3 = run_modeling(train, valid, 
-                    file_path="./datasets4_024_log", 
-                    jpgname="_response_target"
-                    , hidden_layers=c(10,10))
-  temp = data_to_test_compare(train, submit, r3)
-  df3 = data_to_test(r3, submit)
-  write.csv(df3, file = paste(file_path_datatotest, "/df3.csv",sep=""))
-  
-  #==========================
-  # Expirement 10: 
-  # convert factors to one-hot encoding features
-  # three data sets: train, validation (with Target) and resulting test (no Target)
-  train = rtrain$d_Target
-  valid = rtest$d_Target
-  submit=rsubmit$d_Target
-  
-  stopifnot(ncol(train) == ncol(valid))
-  stopifnot(ncol(train) == ncol(submit)) # submit: has no Target but row-id
-  
-  print (paste(" names in TRAIN and not in SUBMIT = ",names(train)[!names(train) %in% names(submit)],sep=""))
-  print (paste(" names in SUBMIT and not in TRAIN = ",names(submit)[!names(submit) %in% names(train)],sep=""))
-  
-  # make one hot encoding
-  train=cat_to_one_hot(train)
-  # make sure to have same labels in test and train and submit data 
-  valid <- extend_levels_in_factors(train, valid)
-  valid=cat_to_one_hot(rtest$d_Target)
-  # make sure to have same labels in test and train and submit data 
-  submit <- extend_levels_in_factors(train, submit)
-  submit=cat_to_one_hot(submit)
-  
-  stopifnot(ncol(train) == ncol(valid))
-  stopifnot(ncol(train) == ncol(submit)) # submit: has no Target but row-id
-  
-  if (is_apply_pca) {
-    num_pca = 50
-    rpca_train = convert_to_pca(train, num_pca=num_pca,pca=NULL)
-    train = rpca_train$dpca
-    valid = convert_to_pca(valid, num_pca=num_pca,pca=rpca_train$pca)$dpca
-    submit = convert_to_pca(submit, num_pca=num_pca,pca=rpca_train$pca)$dpca
-  }
-  stopifnot(0 == sum(names(train) != names(valid)))
-  stopifnot(1 ==sum(!names(train) %in% names(submit)))
-  
-  plot_hist(submit[names(submit) %in% get_num_variables_list(submit)],file_path_datatotest, jpgname="_outliers_testset_freq")
-  
-  r5 = run_modeling(train, valid
-                    ,file_path="./datasets6_024_log"
-                    ,jpgname="_response_target_05"
-                    , hidden_layers=c(50,20))
-  temp = data_to_test_compare(train, submit, r5)
-  df5 = data_to_test(r5, submit)
-  write.csv(df5, file = paste(file_path_datatotest, "/df5.csv",sep=""))
 }
 
 # MAIN function: remove global variables from global enviroment

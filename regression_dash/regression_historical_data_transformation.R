@@ -1,4 +1,4 @@
-data_transformation<-function(d)
+data_transformation<-function(d, remove_upper_quantile_anomaly=0.98)
 {
   d$market_id = as.factor(d$market_id)
   d$order_protocol = as.factor(d$order_protocol)
@@ -61,7 +61,13 @@ data_transformation<-function(d)
   d_Target_responses_freq$created_month = as.integer(format(date_create_at, "%m"))
   
   if ("Target" %in% names(d_Target)) {
+    tt = d_Target$Target
+    #summary( tt[tt<quantile(tt, 0.98)] )
+    d_Target = d_Target[tt<quantile(tt, remove_upper_quantile_anomaly),]
     d_Target$Target = log(1.0 + d_Target$Target)
+    
+    tt = d_Target_responses_freq$Target
+    d_Target_responses_freq = d_Target_responses_freq[tt<quantile(tt, remove_upper_quantile_anomaly),]
     stopifnot("Target" %in% names(d_Target_responses_freq))
     d_Target_responses_freq$Target = log(1.0 + d_Target_responses_freq$Target)
   }
@@ -199,9 +205,11 @@ run_modeling<-function(dtrain2,
   
   r3=run_model(dtrain2,dtest2,jpgname,file_path,hidden_layers=hidden_layers)
   
+  if (!is.null(r3$model_gbm)) {
   graphics.off(); par(mfrow=c(1,1)); plot(varImp(object=r3$model_gbm),main="GBM - Variable Importance")
   mypath <- file.path(file_path, paste("modeling_varimp_", "model_gbm", ".jpg", sep = ""))
   print(mypath); dev.copy(jpeg,filename=mypath); dev.off()
+  }
   return (r3)
 }
 #===================== data_to_test
@@ -238,12 +246,18 @@ data_to_test_compare<-function(d_Target_train, d_test_0, r)
 }
 data_to_test<-function(r, d_test_0)
 {
-  data_to_test_1 = data.frame("delivery_id"=d_test_0$delivery_id, 
-                              "prediction_gbm"=exp(predict.train(object=r$model_gbm, d_test_0, type="raw"))
-                              ,"prediction_glm"=exp(predict.train(object=r$model_glm, d_test_0, type="raw"))
-                              ,"prediction_h2o"=exp(as.data.frame(h2o.predict(r$h2o_model$model_h2o, as.h2o(d_test_0)))$predict)
-  )
-  M = cor(as.matrix(data_to_test_1[,c(2,3,4)]))
+  data_to_test_1 = data.frame("delivery_id"=d_test_0$delivery_id)
+  
+  if (!is.null(r$model_gbm)) {
+    data_to_test_1$prediction_gbm=exp(predict.train(object=r$model_gbm, d_test_0, type="raw"))
+  }
+  if (!is.null(r$model_glm)) {
+    data_to_test_1$prediction_glm=exp(predict.train(object=r$model_glm, d_test_0, type="raw"))
+  }
+  if (!is.null(r$h2o_model$model_h2o)) {
+    data_to_test_1$prediction_h2o=exp(as.data.frame(h2o.predict(r$h2o_model$model_h2o, as.h2o(d_test_0)))$predict)
+  }
+  M = cor(as.matrix(data_to_test_1[,names(data_to_test_1) %in% c("prediction_gbm","prediction_glm","prediction_h2o")]))
   print(M)
   return(data_to_test_1)
 }
@@ -270,7 +284,7 @@ cat_to_one_hot<-function(dd)
     data = model.matrix(~.-1,dd0)#,CLASS=dd$CLASS)
     # must add noise to deal with correlations
     length <- dim(data)[1] * dim(data)[2]
-    noise <- matrix(runif(length, -0.01, 0.01), dim(data)[1])
+    noise <- matrix(runif(length, -0.001, 0.001), dim(data)[1])
     noisified <- data + noise
     
     dd1 = data.frame(noisified)
