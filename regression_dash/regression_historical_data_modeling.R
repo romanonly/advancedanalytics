@@ -14,9 +14,9 @@ model_params0$tr_r = 2
   
 
 # RMSE       Rsquared   MAE = 0.3,0.3,0.237
-model_params0$gbm.interaction.depth = c(5)#(5) # c(3,5)#c(1,3)
-model_params0$gbm.n.trees = c(500) #1000) # c(50,100) #c(25,50)
-model_params0$gbm.n.minobsinnode = c(100,200) # c(100,300) #c(10,100)
+model_params0$gbm.interaction.depth = c(3,5)#(5) # c(3,5)#c(1,3)
+model_params0$gbm.n.trees = c(50) #500) # c(50,100) #c(25,50)
+model_params0$gbm.n.minobsinnode = c(100) # c(100,300) #c(10,100)
 model_params0$gbm.shrinkage = c(0.2, 0.3) # c(0.1, 0.2, 0.3)
 
 model_params0$glm.parameter = c(0.1, 1e-3, 1e-5, 1e-8) # c(0.1, 0.2, 0.3)
@@ -194,8 +194,8 @@ train_deep_learning_h2o <- function(dtrain, dtest, hidden_layers=c(6,6),jpgname,
   )
   hyper_params'
   hyper_params <- list(
-    activation=c("Maxout","RectifierWithDropout"),#,"Rectifier","Tanh","TanhWithDropout","MaxoutWithDropout"),
-    hidden=list(c(20), c(20,20),c(50,50),c(30,30,30),c(25,25,25,25)),
+    activation=c("Maxout","RectifierWithDropout","Rectifier") #,"Tanh","TanhWithDropout","MaxoutWithDropout"),
+    ,hidden=list(c(20), c(20,20),c(50,50),c(30,30,30),c(25,25,25,25)),
     input_dropout_ratio=c(0)#,0.05, 0.2),
     ,rate=c(0.01,0.02,0.03)
     ,l1=seq(0, 1e-4, 1e-6)
@@ -204,7 +204,7 @@ train_deep_learning_h2o <- function(dtrain, dtest, hidden_layers=c(6,6),jpgname,
   #hyper_params
   
   ## Stop once the top 5 models are within 1% of each other (i.e., the windowed average varies less than 1%)
-  search_criteria = list(strategy = "RandomDiscrete", max_runtime_secs = 7200, max_models = 1000, seed=1234567, stopping_rounds=5, stopping_tolerance=1e-2)
+  search_criteria = list(strategy = "RandomDiscrete", max_runtime_secs = 3600, max_models = 200, seed=1234567, stopping_rounds=5, stopping_tolerance=1e-2)
   #search_criteria = list(strategy = "RandomDiscrete", max_runtime_secs = 60, max_models = 100, seed=1234567, stopping_rounds=5, stopping_tolerance=1e-2)
   
     

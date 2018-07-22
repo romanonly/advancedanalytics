@@ -1,4 +1,4 @@
-data_transformation<-function(d, remove_upper_quantile_anomaly=0.98)
+data_transformation<-function(d, remove_upper_quantile_anomaly=0.98, remove_upper_quantile_anomaly_sd_fraction=0.1)
 {
   d$market_id = as.factor(d$market_id)
   d$order_protocol = as.factor(d$order_protocol)
@@ -63,12 +63,18 @@ data_transformation<-function(d, remove_upper_quantile_anomaly=0.98)
   if ("Target" %in% names(d_Target)) {
     tt = d_Target$Target
     #summary( tt[tt<quantile(tt, 0.98)] )
-    d_Target = d_Target[tt<quantile(tt, remove_upper_quantile_anomaly),]
+    tmax = quantile(tt, remove_upper_quantile_anomaly)
+    tmax = tmax + (tmax - mean(tt)) * remove_upper_quantile_anomaly_sd_fraction
+    tmin = quantile(tt, 1.0-remove_upper_quantile_anomaly)
+    tmin = tmin - (mean(tt) - tmin) * remove_upper_quantile_anomaly_sd_fraction
+    
+    print(paste(" data_transofrmation remove_quantile # = ", length(tt)-length(tt[tt<tmax & tt>tmin]),sep=""))
+    d_Target = d_Target[tt<tmax & tt>tmin,]
     d_Target$Target = log(1.0 + d_Target$Target)
     
-    tt = d_Target_responses_freq$Target
-    d_Target_responses_freq = d_Target_responses_freq[tt<quantile(tt, remove_upper_quantile_anomaly),]
     stopifnot("Target" %in% names(d_Target_responses_freq))
+    stopifnot(1e-10 > abs(tt - d_Target_responses_freq$Target))
+    d_Target_responses_freq = d_Target_responses_freq[tt<tmax & tt>tmin,]
     d_Target_responses_freq$Target = log(1.0 + d_Target_responses_freq$Target)
   }
   

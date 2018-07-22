@@ -13,6 +13,23 @@ sudo apt-get install libxml2-dev
 sudo apt-get install r-cran-xml
 install.packages("XML")
 install.packages("plotROC")
+
+## Maximal number of DLLs reached
+normalizePath("~/.Renviron", mustWork = FALSE)
+## which should then contain a line with:
+R_MAX_NUM_DLLS=500
+
+--
+sudo add-apt-repository ppa:cairo-dock-team/ppa
+sudo apt-get update
+If Cairo-Dock is already installed, install the updates by using the Update Manager or this command:
+
+sudo apt-get dist-upgrade
+If not, install it via the Software Center or via this command:
+
+sudo apt-get install cairo-dock cairo-dock-plug-ins
+=====================
+MAC
 '
 #load from R repository
 packages1 <- c("corrr","vcd", "readxl","tidyverse", "bnlearn", "rpart",  "gbm", "caret", "mice", "VIM", "missForest", "ggplot2","randomForest", "e1071", "ROSE",  "DMwR")#"SMOTE",

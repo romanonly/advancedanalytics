@@ -66,7 +66,7 @@ num_pca = 0
 main <- function()
 {
   #=== create folder for test data: save test data in folder:
-  file_path_datatotest="./data_to_test_0026"
+  file_path_datatotest="./data_to_test_0027"
   file_log = make_dir_sink_log_txt(file_path_datatotest)
   #============
   readdata = read_train_submit_data()
@@ -86,6 +86,7 @@ main <- function()
   
   print (paste(" names in TRAIN and not in SUBMIT = ",names(train)[!names(train) %in% names(submit)],sep=""))
   print (paste(" names in SUBMIT and not in TRAIN = ",names(submit)[!names(submit) %in% names(train)],sep=""))
+  print (paste(" names in VALID and not in TRAIN = ",names(valid)[!names(valid) %in% names(train)],sep=""))
   
   # make one hot encoding
   train=cat_to_one_hot(train)
@@ -98,11 +99,11 @@ main <- function()
 
   ret_experement7 <- experement(
     train, valid
-    #train[sample(nrow(train),1000),], valid[sample(nrow(valid),1000),]
+    #train[sample(nrow(train),1000),], valid[sample(nrow(valid),100),]
                                 ,submit,
                                 num_pca,file_path_datatotest
                                ,df_name="df7.csv"
-                               ,file_path="./datasets7_026_log"
+                               ,file_path="./datasets7_027_log"
                                ,jpgname="_freq_hotkey7")
     
   #===============================
@@ -120,7 +121,7 @@ main <- function()
                                 , submit
                                 ,num_pca,file_path_datatotest
                                 ,df_name="df1.csv"
-                                ,file_path="./datasets1_026_log"
+                                ,file_path="./datasets1_027_log"
                                 ,jpgname="_target1")
   
   # ==========================================
@@ -137,7 +138,7 @@ main <- function()
                                 , submit,
                                 num_pca,file_path_datatotest
                                 ,df_name="df2.csv"
-                                ,file_path="./datasets2_026_log"
+                                ,file_path="./datasets2_027_log"
                                 ,jpgname="_target_freq2")
   
 
@@ -164,7 +165,7 @@ main <- function()
                                 , submit,
                                 num_pca,file_path_datatotest
                                 ,df_name="df3.csv"
-                                ,file_path="./datasets3_026_log"
+                                ,file_path="./datasets3_027_log"
                                 ,jpgname="_target_freq_meantarget3")
 
 }
