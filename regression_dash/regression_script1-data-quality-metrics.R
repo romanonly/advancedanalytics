@@ -32,15 +32,16 @@ sudo apt-get install cairo-dock cairo-dock-plug-ins
 MAC
 '
 #load from R repository
-packages1 <- c("corrr","vcd", "readxl","tidyverse", "bnlearn", "rpart",  "gbm", "caret", "mice", "VIM", "missForest", "ggplot2","randomForest", "e1071", "ROSE",  "DMwR")#"SMOTE",
-packages2 <- c("ellipse", "doParallel", "lattice","iterators","foreach","parallel")
-packages3 <- c("mlbench", "pROC", "ROCR","jpeg","tidyr","plyr","dplyr")
+packages1 <- c("corrr","vcd", "readxl","tidyverse", "bnlearn", "mice", "VIM", "missForest", "e1071", "ROSE",  "DMwR")#"SMOTE",
+packages2 <- c("iterators","foreach","parallel")
+packages3 <- c("mlbench", "pROC","tidyr","plyr")
 packages4 <- c("gridExtra", "XML", "gridSVG","plotROC", "pcaGoPromoter")
 packages5 <- c("scatterplot3d", "plotly", "ggfortify","stats","psych","pca3d","logisticPCA","ggplot2", "discretization")
-packages6 <- c("lubridate", "corrplot", "h2o")#,"h2oEnsemble", "imputeTS","rjson", "DT")
+packages6 <- c("pROC","ROCR","lubridate", "corrplot", "h2o", "rpart",  "gbm", "caret","randomForest", "ellipse", "lattice","doParallel","jpeg","dplyr")#,"h2oEnsemble", "imputeTS","rjson", "DT")
 packages_backup = c("bigpca")
 
-packages = c(packages1, packages2, packages3, packages4,packages5,packages6)
+#packages = c(packages1, packages2, packages3, packages4,packages5,packages6)
+packages = c(packages6)
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }

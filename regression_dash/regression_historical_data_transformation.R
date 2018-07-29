@@ -1,32 +1,41 @@
-data_transformation<-function(d, remove_upper_quantile_anomaly=0.98, remove_upper_quantile_anomaly_sd_fraction=0.1)
+make_target_sort_date <- function(d)
 {
-  d$market_id = as.factor(d$market_id)
-  d$order_protocol = as.factor(d$order_protocol)
+  #The target value to predict here is the total seconds value between 
+  # `created_at` and `actual_delivery_time`. '
+  x1 <- strptime(d$created_at, "%Y-%m-%d %H:%M:%OS")
+  
+  stopifnot("actual_delivery_time" %in% names(d))
+    
+  if ("actual_delivery_time" %in% names(d)) {
+    x2 <- strptime(d$actual_delivery_time, "%Y-%m-%d %H:%M:%OS")
+    dx=x2-x1 #difftime(x2-x1, unites="seconds")
+    d$Target = floor(60*as.integer( as.numeric(dx)))#, units="secs") )
+    #sort in time, most recent come first
+  }
+  d = d[rev(order(x1)),]
+  #return (list(d=d, date_create_at=x1))
+  return (d)
+}
+data_historical_prepare<-function(d)
+{
+  stopifnot (class(d$market_id) == "factor")# = as.factor(d$market_id)
+  stopifnot (class(d$order_protocol) == "factor") #as.factor(d$order_protocol)
   #remove negative valriables
   #d$min_item_price = d$min_item_price - min(d$min_item_price)
   d = d[d$min_item_price>=0,]
   #replace long name
   names(d)[names(d)=="estimated_store_to_consumer_driving_duration"]="store_to_consumer_dt"
   names(d)[names(d)=="estimated_order_place_duration"] = "estim_order_place_dt"
-  #remove missing variables
-  
-  data = d
-  print(sum(is.na(data)))
-  print(paste("============ missing variables[columns]=",names(data)[colSums(is.na(data)) > 0],sep=""))#dC=d[ , colSums(is.na(data)) == 0]
-  #d = na.omit(data)
-  for(i in 1:ncol(d)){
-    d[is.na(d[,i]), i] <- mean(d[,i], na.rm = TRUE)
-  }
-  print(sum(is.na(d)))
-  d = na.omit(d)
-  print(paste("============ missing variables[columns]=",names(data)[colSums(is.na(data)) > 0],sep=""))#dC=d[ , colSums(is.na(data)) == 0]
-  
+
+
   #remove non-consuisten data: negative dashers
   print(paste(" amount of negarive dashers data points=",nrow( d[d$total_onshift_dashers<0 | d$total_busy_dashers<0,]), sep=""))
   d = d[d$total_onshift_dashers>=0 & d$total_busy_dashers>=0,]
   
   #Log normal outliers
-  d = replace_log_transformation(d)
+  d = data_historical_replace_log_transformation(d)
+  
+  if (FALSE) { # try to remove collinear predictors
   
   # Take care collinear features
   d$dashers_ratio = log(1.0+d$total_onshift_dashers / (1.0+d$total_busy_dashers))
@@ -37,31 +46,85 @@ data_transformation<-function(d, remove_upper_quantile_anomaly=0.98, remove_uppe
   d$min_item_price = d$total_items - as.numeric(d$min_item_price)
   
   d$total_onshift_dashers = d$total_onshift_dashers - d$total_busy_dashers
-  
-  
-  # Target
-  d_Target <- make_target_sort_date(d) #date_create_at=ret$x1
-  # remove 'actual_delivery_time'
-  d_Target = d_Target[!names(d_Target) %in% c("actual_delivery_time")]
-  
-  # responses for factors
-  d_Target_responses_freq <- add_factors_responses_frequencies(d_Target) # MUST BE APPLIED TO json !!!
-  
+  }  
   #add new variables
   #d_Target_responses_freq$date_create_at = strptime(d_Target_responses_freq$created_at, "%Y-%m-%d %H:%M:%OS")
-  date_create_at = strptime(d_Target_responses_freq$created_at, "%Y-%m-%d %H:%M:%OS")
-  d_Target_responses_freq$created_weekday = as.integer(wday(date_create_at))#weekdays(x1)
+  
+  d_Target = d
+  # make Target - for train set, nothing for test set
+  if ("actual_delivery_time" %in% names(d)) {
+    d_Target <- make_target_sort_date(d) #date_create_at=ret$x1
+    # remove 'actual_delivery_time'
+    d_Target = d_Target[!names(d_Target) %in% c("actual_delivery_time")]
+  }
+  # responses for factors
+  #d_Target_responses_freq <- add_factors_responses_frequencies(d_Target) # MUST BE APPLIED TO json !!!
+
+  temp_date_create_at = strptime(d_Target$created_at, "%Y-%m-%d %H:%M:%OS")
+  
+  
+  date_create_at = strptime(temp_date_create_at, "%Y-%m-%d %H:%M:%OS")
+  #d_Target_responses_freq$created_weekday = as.integer(wday(date_create_at))#weekdays(x1)
+  temp_weekday = as.integer(wday(date_create_at))#weekdays(x1)
   temp_hour = as.integer(format(date_create_at, "%H"))
   temp_min = as.integer(format(date_create_at, "%M"))
   temp_min2 = as.integer(minute(date_create_at))
-  stopifnot(0 == sum(temp_min2-temp_min))
-  i60 = 1.0/60.0
-  d_Target_responses_freq$created_hourmin = as.integer((12+as.integer(floor(temp_hour+0.5+i60*temp_min))) %% 24)
-  d_Target_responses_freq$created_day = as.integer(format(date_create_at, "%d"))
-  d_Target_responses_freq$created_month = as.integer(format(date_create_at, "%m"))
+  stopifnot(0 == sum(temp_min2-temp_min, na.rm=TRUE))
   
-  if ("Target" %in% names(d_Target)) {
-    tt = d_Target$Target
+  
+  d_Target$created_weekday = as.integer(temp_weekday)
+  i60 = 1.0/60.0
+  d_Target$created_hourmin = as.integer((12+as.integer(floor(temp_hour+0.5+i60*temp_min))) %% 24)
+  d_Target$created_day = as.integer(format(date_create_at, "%d"))
+  d_Target$created_month = as.integer(format(date_create_at, "%m"))
+  
+  return (d_Target)  
+}
+
+data_historical_replace_log_transformation <- function(dd)
+{
+  col_num_outliers=c("total_items", "subtotal", "num_distinct_items",
+                     "min_item_price", "max_item_price", 
+                     "estim_order_place_dt" ## estimates_order_place_duration, 
+  )
+  for (nm in names(dd)) {
+    if ("integer" == class(dd[,nm]) | "numeric" == class(dd[,nm])) {
+      #print(nm)
+      #hist( (dd[,nm]),main=nm) #log makes more gaussian
+      if (nm %in% col_num_outliers) {
+        dd[, nm] = log(1.0 + (dd[, nm] - min(dd[, nm])))
+      }
+    }
+  }
+  return (dd)
+}
+#data_transformation<-function(data, remove_upper_quantile_anomaly=0.98, remove_upper_quantile_anomaly_sd_fraction=0.1)
+data_remove_missing <-function(data)
+{
+  #remove missing variables
+  print(paste(" Num of missing = ", sum(is.na(data)), sep=""))
+  print(paste("============ missing variables[columns]=",names(data)[colSums(is.na(data)) > 0],sep=""))#dC=d[ , colSums(is.na(data)) == 0]
+  #d = na.omit(data)
+  for(i in 1:ncol(data)){
+    if (sum(is.na(data[,i]))>0 & "factor" != class(data[,i])) {
+    data[is.na(data[,i]), i] <- mean(data[,i], na.rm = TRUE)
+    }
+  }
+  print(paste(" ---- fixed: Num of missing as mean = ", sum(is.na(data)), sep=""))
+  d = na.omit(data)
+  print(paste(" ---- removed after fixed: Num missing as mean = ", sum(is.na(d)), sep=""))
+  print(paste("============ fixed as mean: missing variables in [columns]=",names(data)[colSums(is.na(data)) > 0],sep=""))#dC=d[ , colSums(is.na(data)) == 0]
+  print(paste("============ removed: missing variables in [columns]=",names(d)[colSums(is.na(d)) > 0],sep=""))#dC=d[ , colSums(is.na(data)) == 0]
+  return (d)
+}
+  
+data_remove_outliers<-function(data, name_var="Target", remove_upper_quantile_anomaly=0.98, remove_upper_quantile_anomaly_sd_fraction=0.1, is_loss_log=TRUE)  
+{
+  d_Target = data
+  stopifnot(name_var %in% names(d_Target))
+  
+  if (name_var %in% names(d_Target)) {
+    tt = d_Target[, name_var]#$Target
     #summary( tt[tt<quantile(tt, 0.98)] )
     tmax = quantile(tt, remove_upper_quantile_anomaly)
     tmax = tmax + (tmax - mean(tt)) * remove_upper_quantile_anomaly_sd_fraction
@@ -70,40 +133,98 @@ data_transformation<-function(d, remove_upper_quantile_anomaly=0.98, remove_uppe
     
     print(paste(" data_transofrmation remove_quantile # = ", length(tt)-length(tt[tt<tmax & tt>tmin]),sep=""))
     d_Target = d_Target[tt<tmax & tt>tmin,]
-    d_Target$Target = log(1.0 + d_Target$Target)
     
+    if (TRUE==is_loss_log) {
+      #d_Target$Target = log(1.0 + d_Target$Target)
+      d_Target[,name_var] = log(1.0 + d_Target[,name_var])
+    }
+    '    
     stopifnot("Target" %in% names(d_Target_responses_freq))
     stopifnot(1e-10 > abs(tt - d_Target_responses_freq$Target))
     d_Target_responses_freq = d_Target_responses_freq[tt<tmax & tt>tmin,]
-    d_Target_responses_freq$Target = log(1.0 + d_Target_responses_freq$Target)
+    d_Target_responses_freq$Target = log(1.0 + d_Target_responses_freq$Target)'
   }
   
-  return (list(d_Target=d_Target, d_Target_responses_freq=d_Target_responses_freq))
+  return ((d_Target=d_Target))#, d_Target_responses_freq=d_Target_responses_freq))
 }
 
 #==============
-plot_target_pred_lines <- function(data, file_path, jpgname, n = 1000)
+plot_target_pred_lines <- function(data, file_path, jpgname=NULL, num_points = 1000, plot_nrow=2, plot_ncol=5, numer_names=NULL)
 {
-  graphics.off()
-  op <- par(mfrow = c(3,5))
+  if (!is.null(jpgname))
+    graphics.off()
   
+  op <- par(mfrow = c(plot_nrow, plot_ncol))
+  
+  num_plots = plot_nrow * plot_ncol
   d_numerical_only = data[names(data) %in% get_num_variables_list(data)]
   i = 0
-  nms = names(d_numerical_only)
-  nsample = min(15, length(nms))
+  
+  if (is.null(numer_names)) {
+    nms = names(d_numerical_only)
+  } else {
+    nms = names(d_numerical_only[,names(d_numerical_only) %in% numer_names])
+  }
+  
+  nsample = min(num_plots, length(nms))
   ind_nms = sample(length(nms),nsample)
+  
+  num_points = min(num_points, nrow(data))
+  
   for (nm in nms[ind_nms]) {
     if (nm != "Target") {
-      if (i < 15) {
-        train_index = sample(nrow(data),n)
+      if (i <= num_plots) {
+        train_index = sample(nrow(data),num_points)
         plot(data$Target[train_index] ~ data[train_index, nm], xlab=nm)
+        i = i + 1
       }
-      i = i + 1
     }
   }
-  mypath <- file.path(file_path, paste("fig_target_predictors", jpgname, ".jpg", sep = ""))
-  print(mypath); dev.copy(jpeg,filename=mypath); dev.off()
+  if (!is.null(jpgname)) {
+    mypath <- file.path(file_path, paste("fig_target_predictors", jpgname, ".jpg", sep = ""))
+    print(mypath); dev.copy(jpeg,filename=mypath); dev.off()
+  }
 }
+#==============
+plot_target_factor <- function(data, file_path, jpgname=NULL, num_points=1000, plot_nrow=2, plot_ncol=5, numer_names=NULL, target_name="Target",max_nlevels=30)
+{
+  if (!is.null(jpgname))
+    graphics.off()
+  
+  op <- par(mfrow = c(plot_nrow, plot_ncol))
+  
+  num_plots = plot_nrow * plot_ncol
+  
+  if (is.null(numer_names)) {
+    nms = names(data)
+  } else {
+    nms = names(data[names(data) %in% numer_names])
+  }
+  
+  #nsample = min(num_plots, length(nms))
+  #ind_nms = sample(length(nms),nsample)
+  
+  num_points = min(num_points, nrow(data))
+  train_index = sample(nrow(data),num_points)
+  
+  data_target = data[train_index, target_name]
+  i = 0
+  for (nm in nms) { #[ind_nms]) {
+    if (nm != "Target" & class(data[, nm]) == "factor" & i <= num_plots) {
+          y = data[train_index, nm]
+          if (nlevels(y) < max_nlevels) {
+            #print(summary(y))
+            plot(data_target ~ y, xlab=nm)
+            i = i + 1
+          }
+    }
+  }
+  if (!is.null(jpgname)) {
+    mypath <- file.path(file_path, paste("fig_target_predictors_factors", jpgname, ".jpg", sep = ""))
+    print(mypath); dev.copy(jpeg,filename=mypath); dev.off()
+  }
+}
+
 
 #=============== MODEL ============
 run_model<-function(dtrain=NULL,dtest=NULL,jpgname=NULL,file_path=NULL,hidden_layers=c(25,20,15))
@@ -267,40 +388,7 @@ data_to_test<-function(r, d_test_0)
   print(M)
   return(data_to_test_1)
 }
-extend_levels_in_factors<-function(d_Target_train, d_to_be_extended)
-{
-  d_test_0 = d_to_be_extended
-  for (nm in c("order_protocol", "market_id","store_primary_category")) {
-    if (length(levels(d_Target_train[,nm]))>length(levels(d_test_0[,nm]))) {
-      print(paste(" missing lavels in ",nm,sep=""))
-      d_test_0[,nm] <- factor(d_test_0[,nm], levels=levels(d_Target_train[,nm]))
-      #levels(ff) <- c(levels(ff), "fgh")
-    }
-    print (sum(!levels(d_Target_train[,nm]) %in% levels(d_test_0[,nm])))
-  }
-  return (d_test_0)
-}
 #=============================
-cat_to_one_hot<-function(dd)
-{
-  dret = dd
-  for (nm in c("order_protocol", "market_id","store_primary_category")) {
-    dd0 <- subset(dd,select=nm)
-    
-    data = model.matrix(~.-1,dd0)#,CLASS=dd$CLASS)
-    # must add noise to deal with correlations
-    length <- dim(data)[1] * dim(data)[2]
-    noise <- matrix(runif(length, -0.001, 0.001), dim(data)[1])
-    noisified <- data + noise
-    
-    dd1 = data.frame(noisified)
-    dret = cbind(dret, dd1)
-  }
-  'dd2 = with(dd1,
-  data.frame(model.matrix(~RACE-1,dd),
-  store_primary_category,market_id,order_protocol))'
-  return (dret)
-}
 
 read_train_submit_data<-function()
 {
@@ -308,10 +396,15 @@ read_train_submit_data<-function()
   fn = paste("./datasets/historical_data.csv",sep="")
   print(fn)
   d <- read.csv(fn)
+  d$market_id = as.factor(d$market_id)
+  d$order_protocol = as.factor(d$order_protocol)
+  
   #====== read data to test ========
   fn0 = paste("./datasets/", "data_to_predict.csv",sep="")
   print(fn0)
   d0 <- read.csv(fn0)
+  d0$market_id = as.factor(d0$market_id)
+  d0$order_protocol = as.factor(d0$order_protocol)
   
   d0 = d0[!names(d0) %in% c("platform")]
   

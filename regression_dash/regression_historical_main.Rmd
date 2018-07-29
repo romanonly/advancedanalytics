@@ -1,0 +1,478 @@
+---
+title: "regression_historical_main"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,fig.width=5, fig.height=4)
+#knitr::opts_chunk$set(fig.width=12, fig.height=8) 
+
+setwd("~/RstudioProjects/2018/doordash")
+#setwd("~/regression")
+source("regression_historical_data_functions.R")
+source("regression_historical_data_modeling.R")
+source("regression_historical_data_transformation.R")
+source("regression_script1-data-quality-metrics.R")
+```
+
+## Set output folder, parameters
+
+You can embed an R code chunk like this:
+```{r data-read}
+num_pca = 0
+max_num_for_training = 10000
+add_factors_as_freq_and_one_hot = FALSE #TRUE
+isMulticore = TRUE
+Classification_of_Outliers = TRUE #FALSE
+
+#=== create folder for test data: save test data in folder:
+file_path = "/data_to_test_0050"
+jpgname = "_experement001"
+file_path = paste(".", file_path, sep="")
+file_path_datatotest=file_path#"./data_to_test_0041"
+file_log = make_dir_sink_log_txt(file_path_datatotest)
+# set logging
+#dir.create(file_path)
+#file_path_created = make_dir_sink_log_txt(file_path)#("/data_to_test_0013")
+```
+
+## Prepare historical data
+
+```{r data-outliers-missing, echo=FALSE}
+read_historical_dash <- function()
+{
+readdata = read_train_submit_data()
+
+dtrain1 <- data_remove_missing(readdata$dtrain)
+dtrain2 <- data_historical_prepare(dtrain1)
+data_train <-data_remove_outliers(dtrain2, name_var="Target", 
+                                       remove_upper_quantile_anomaly=0.98, remove_upper_quantile_anomaly_sd_fraction=0.1, is_loss_log=TRUE) 
+
+dsubmit1 <- data_remove_missing(readdata$dsubmit)
+data_submit <- data_historical_prepare(dsubmit1)
+
+factors_names = c("order_protocol", "market_id","store_primary_category")
+
+
+
+if (Classification_of_Outliers) {
+  
+  print("For modeling outliers: convert numerical Target to classes ")
+  
+  target_to_class<-function(tt, max_quantile=0.9) {
+    tmax = quantile(tt, max_quantile)
+    print(paste(" data_transofrmation outliers # = ", length(tt)-length(tt[tt<tmax]),sep=""))
+    cTarget = as.factor(tt<tmax)
+    #" MYEXCEPTION: error Error: At least one of the class levels is not a valid R variable name; 
+    #cTarget = as.factor(as.integer(cTarget))
+    levels(cTarget) <- c('class1', 'class2')
+    return (cTarget)
+  }
+  
+  # In modeling - only numerical, remove factor predictors! 
+  #" MYEXCEPTION: error Error: cannot allocate vector of size 244.0 Gb\n"
+  data_train$Target = target_to_class(data_train$Target)
+}
+
+return (list(data_submit=data_submit, data_train=data_train, factors_names=factors_names))
+}
+```
+
+
+
+
+# Prepare ibm marketing data
+
+
+```{r ibm-data-outliers-missing, echo=FALSE}
+read_ibm_marketing <- function()
+{
+fn = paste("./datasets/ibm_marketing.csv")
+data = read.csv(fn)
+
+names(data)[names(data) == 'Response'] <- 'Target'
+levels(data$Target) <- c('class1', 'class2')
+
+for (nm in names(data))
+  if (!"factor" == class(data[,nm]))
+    data[,nm] = as.numeric(data[,nm])
+
+ret_split = split_data(data, split_ratio = 0.8, is_timesorted_vs_sample = FALSE)
+train = ret_split$dtrain
+valid = ret_split$dtest
+  
+factors_names = c("Vehicle.Size", "Vehicle.Class", "Sales.Channel", "Renew.Offer.Type", "Policy", "Policy.Type", "Marital.Status"
+            , "Location.Code", "Gender", "EmploymentStatus", "Education", "Coverage")
+
+data_train <- data_remove_missing(train)
+
+if ("factor" != class(data_train$Target)) {
+  data_train <-data_remove_outliers(data_train, name_var="Target", 
+                                       remove_upper_quantile_anomaly=0.98, remove_upper_quantile_anomaly_sd_fraction=0.1, is_loss_log=TRUE)  
+}
+
+data_submit <- data_remove_missing(valid)
+data_submit[,"Target"] = NULL # must not have Target
+
+return (list(data_submit=data_submit, data_train=data_train, factors_names=factors_names))
+}
+```
+
+
+
+
+## Set train, valid, submit
+
+target - can be numerical or factor of two classes
+data_submit - does not have Target
+
+```{r add-train-valid-submit}
+#ret_read = read_ibm_marketing()
+ret_read = read_historical_dash()
+
+data_train = ret_read$data_train
+data_submit = ret_read$data_submit
+factors_names = ret_read$factors_names  
+
+# MUST PREPARE data_train and data_submit
+print(summary(data_train$Target))
+
+stopifnot(!"Target" %in% names(data_submit))
+stopifnot(1 >= sum(!names(data_train) %in% names(data_submit))) # 1 name difference at most
+stopifnot(1 >= sum(!names(data_submit) %in% names(data_train))) #
+
+
+if (add_factors_as_freq_and_one_hot) {
+  data_freq <- add_factors_responses_frequencies(data_train, factor_names = factors_names)
+  data_freq_onthot=cat_to_one_hot(data_freq, factors_names)
+  
+  data_train = data_freq_onthot
+  
+  # make sure to have same labels in test and train and submit data 
+  valid <- extend_levels_in_factors_new(data_train, data_submit, factors_names)
+  valid_freq <- add_factors_responses_frequencies(valid, factor_names = factors_names)
+  valid_freq_onthot=cat_to_one_hot(valid_freq, factors_names)
+  
+  data_submit = valid_freq_onthot
+  #data_submit[,"Target"] = NULL # must not have Target
+}
+```
+
+
+```{r split-train-valid-submit}
+stopifnot(!"Target" %in% names(data_submit))
+stopifnot("Target" %in% names(data_train))
+
+ret = split_data(data_train, split_ratio = 0.7, is_timesorted_vs_sample = FALSE)
+
+#Experement 1
+train = ret$dtrain
+valid = ret$dtest
+submit = data_submit
+
+submit <- extend_levels_in_factors_new(train, submit, factor_names = factors_names)
+
+if (num_pca > 0) {
+  rpca_train = convert_to_pca(train, num_pca=num_pca,pca=NULL)
+  train = rpca_train$dpca
+  valid = convert_to_pca(valid, num_pca=num_pca,pca=rpca_train$pca)$dpca
+  submit = convert_to_pca(submit, num_pca=num_pca,pca=rpca_train$pca)$dpca
+}
+```
+
+# Plot Target vs. predictors:
+```{r run-experement-plot-factors, echo=FALSE}
+if (class(train$Target) != "factor") {
+  plot_target_factor(train, file_path, jpgname=NULL, plot_nrow=1, plot_ncol=4, 
+                     numer_names=NULL, target_name="Target", max_nlevels = 100)
+}
+```
+
+# Plot Target vs. predictors:
+```{r run-experement-plotlines, echo=FALSE}
+plot_target_pred_lines(train, file_path, jpgname, num_points = 1200, plot_nrow=2, plot_ncol=4)
+```
+
+# Plot histogram predictors:
+```{r run-experement-plot-hist}
+d = train[names(train) %in% get_num_variables_list(train)]
+#plot_hist(d,file_path, jpgname = "_hist", plot_nrow=2, plot_ncol=4)
+plot_hist(d,file_path, jpgname = NULL, plot_nrow=2, plot_ncol=4)
+```
+
+# Plot correlation matrix:
+```{r run-experement-plot-hist2}
+#plot_corr(d,file_path, jpgname = "_correal_mat")
+plot_corr(d,file_path, jpgname = NULL)
+```
+
+# PCA: Factors only
+```{r run-experement-plot-pca}
+data = train
+
+#d_factors = data[names(data) %in% factors_names]
+
+d_numerical_only = data[names(data) %in% get_num_variables_list(data)]  
+# plot Target as labels in PC1-PC2
+if ("factor" == class(data$Target)) {
+  labels = as.integer(data$Target)
+} else {
+  stopifnot("Target" %in% names(d_numerical_only))
+  labels = as.numeric(d_numerical_only$Target - min(d_numerical_only$Target))
+  labels = 1 + as.integer(5 * labels / max(labels))
+}
+
+ret = pca_numerical(pcadata=d_numerical_only, labels=labels, num_pca_comps = 10)
+if (!is.null(ret$ret_err))
+  pca_plot(ret,labels,file_path, jpgname = NULL)
+```
+
+```{r run-experement-plot-pca2}
+par(mfrow=c(2,2))
+if (!is.na(labels)) {
+  pca = ret$pca
+  plot(pca$x[,1:2], col=as.integer(as.factor(labels)))
+  plot(pca$x[,2:3], col=as.integer(as.factor(labels)))
+  
+prop_varex = pca$sdev^2
+plot(prop_varex / (sum(prop_varex)), xlab="Princ Comp", ylab=" Var Explained")
+plot(cumsum(prop_varex), xlab = "Principal Component",
+     ylab = "Cumulative Proportion of Variance Explained",
+     type = "b")
+}
+``` 
+
+## Modeling 
+
+GBM, GLM, h2o
+
+```{r modeling-gbm, echo=FALSE}
+model_params0 = list()
+model_params0$tr_is_repeatedcv_vs_oob = "repeatedcv" #"oob"
+model_params0$tr_n = 10
+model_params0$tr_r = 1 # 2
+
+model_params0$gbm.interaction.depth = c(3,5,7) #c(3,5)#(5) # c(3,5)#c(1,3)
+model_params0$gbm.n.trees = c(50) #50) # c(50,100) #c(25,50)
+model_params0$gbm.n.minobsinnode = c(100) #c(100) # c(100,300) #c(10,100)
+model_params0$gbm.shrinkage = c(0.2, 0.3) #c(0.2, 0.3) # c(0.1, 0.2, 0.3)
+
+model_params0$glm.parameter = c(1e-3, 1e-5, 1e-8, 1e-11) # c(0.1, 1e-3, 1e-5, 1e-8) # c(0.1, 0.2, 0.3)
+
+#model_params0$rf.mtry = c(2) # seq(2,8,4)
+model_params0$rf.ntree = c(5) # c(100)
+
+
+if (TRUE == isMulticore) { #Multicore
+  library(doParallel)
+  no_cores <- detectCores() - 1
+  cl <- makeCluster(no_cores, outfile=paste0('./info_parallel.log'))
+  registerDoParallel(cl)
+}
+
+if ("factor" == class(train$Target)) {
+  stopifnot(nlevels(train$Target) == 2)
+  # Error - The metric "Kappa" was not in the result set. ROC will be used instead.
+  #model_params0$metric = "Accuracy" # must remove  #,classProbs = TRUE #, summaryFunction = twoClassSummary!!!
+  #model_params0$metric = "ROC"
+  #model_params0$metric = "Spec"
+  #model_params0$metric = "Sens"
+  
+  model_params0$metric = "Kappa" # resamples will fail for Kappa, only ROC  
+}
+# In modeling - only numerical, remove factor predictors! 
+#" MYEXCEPTION: error Error: cannot allocate vector of size 244.0 Gb\n"
+
+mtrain = train[names(train) %in% get_num_variables_list(train)]
+mtrain$Target = train$Target # add target in any case, numerical or factor
+mvalid = valid[names(valid) %in% get_num_variables_list(valid)]  
+mvalid$Target = valid$Target
+msubmit = submit[names(submit) %in% get_num_variables_list(submit)]  
+stopifnot(!"Target" %in% names(submit))
+
+temp_train = mtrain[sample(nrow(mtrain),min(max_num_for_training, nrow(mtrain))), ] # fast modeling
+
+model_gbm = modeling(temp_train, method_name = "gbm", model_params=model_params0)
+model_glm = modeling(temp_train, method_name = "glm", model_params=model_params0)
+
+if (TRUE == isMulticore) { #Multicore
+  stopCluster(cl)
+  registerDoSEQ()
+}
+```
+
+## Print GBM model
+```{r modeling-gbm-print, echo=TRUE}
+if (!is.null(model_gbm)) {
+  print(model_gbm)
+}
+```
+
+## Print GBM model
+```{r modeling-glm-print, echo=TRUE}
+if (!is.null(model_glm)) {
+  print(model_glm)
+}
+``` 
+
+
+## Print regression results
+```{r modeling-glm-print2, echo=TRUE}
+if ("factor" != class(mvalid$Target)) {
+  pred_gbm=modeling_result_print(model_gbm, mvalid, mtrain)
+  pred_glm=modeling_result_print(model_glm, mvalid, mtrain)
+}
+``` 
+
+## Save GBM, GLM model plots: hyper params and varimp
+```{r modeling-gbm-plot-hyper, echo=TRUE}
+print("plot gbm")
+modeling_result_plot(model_gbm, mvalid, mtrain,file_path, jpgname="gbm")
+print("plot glm")
+modeling_result_plot(model_glm, mvalid, mtrain,file_path, jpgname="glm")
+```
+
+
+```{r modeling-gbm-plot-hyper-varimp, echo=TRUE}
+#par(mfrow=c(1,2));  
+if (!is.null(model_gbm)) {
+  tryCatch(
+    plot(model_gbm),
+    warning = function(w) {print(paste(" MYEXCEPTIONwarning ", w)); },
+    error = function(e) {print(paste(" MYEXCEPTION: error", e));  NaN})
+}
+```
+
+## Plot GBM model
+```{r modeling-gbm-plot_varimp, echo=TRUE}
+if (!is.null(model_gbm)) {
+  tryCatch(
+    plot(varImp(object=model_gbm),main="GBM - Variable Importance"),
+    warning = function(w) {print(paste(" MYEXCEPTIONwarning ", w)); },
+    error = function(e) {print(paste(" MYEXCEPTION: error", e));  NaN})
+}
+```
+
+## Plot GLM model
+```{r modeling-gbm-plot_varimp-glm2, echo=TRUE}
+if (!is.null(model_glm)) {
+  tryCatch(
+    plot(varImp(object=model_glm),main="GLM - Variable Importance"),
+    warning = function(w) {print(paste(" MYEXCEPTIONwarning ", w)); },
+    error = function(e) {print(paste(" MYEXCEPTION: error", e));  NaN})
+}
+```
+
+##  Model h2o DNN
+
+```{r modeling-h2o, echo=TRUE}
+if ("factor" == class(mvalid$Target)) {
+  stopping_metric = "AUC"
+} else {
+  stopping_metric = "MSE"
+}
+
+  h2o_model <- train_deep_learning_h2o(temp_train, mvalid, file_path, hidden_layers=c(6,6), jpgname=NULL
+                                    ,isRunHyper=FALSE
+                                    ,epochs=20
+                                    ,score_validation_samples=1000
+                                    ,input_dropout_ratio=0.01
+                                    ,stopping_metric = stopping_metric) 
+
+```
+
+##  Model h2o DNN plot
+
+```{r modeling-h2o-plot, echo=TRUE}
+  train_deep_learning_h2o_plot(h2o_model$model_h2o, file_path, jpgname="_h2o")
+```
+  
+```{r modeling-h2o-plot2, echo=TRUE}
+  par(mfrow=c(1,1))
+  plot(h2o_model$model_h2o)
+```
+## h2o variables importance
+```{r modeling-h2o-plot3, echo=TRUE}
+  vars = as.data.frame(h2o.varimp(h2o_model$model_h2o))
+  #barplot(vars$relative_importance, names.arg=vars$variable)
+  q<- vars$relative_importance
+  names(q)<-vars$variable
+  barchart(q)
+
+  if (!is.null(h2o_model)) { 
+    dtrain_ensemble = data.frame("h2o"=h2o_model$train_pred)
+    dtest_ensemble = data.frame("h2o"=h2o_model$test_pred)
+  }
+```
+
+## Plot GBM model: gain
+
+```{r modeling-gbm-plot-gain, echo=FALSE}
+if ("factor" == class(temp_train$Target))
+  ret_gain = plot_gain(model_rf=model_gbm, test_data=valid, train_data=temp_train, 
+                        test_predictions=NULL, train_predictions=NULL,
+                        train_name = 'train', test_name = 'validation',
+                        file_path=file_path, jpgname=NULL, classes = "Target") 
+```
+
+
+## Plot GLM model: gain
+
+```{r modeling-gbm-plot-gain-glm, echo=FALSE}
+if ("factor" == class(temp_train$Target))
+  ret_gain = plot_gain(model_rf=model_glm, test_data=valid, train_data=temp_train, 
+                        test_predictions=NULL, train_predictions=NULL,
+                        train_name = 'train', test_name = 'validation',
+                        file_path=file_path, jpgname=NULL, classes = "Target") 
+
+```
+
+## Plot GBM model: AUC
+```{r modeling-gbm-plot-auc-glm, echo=FALSE}
+if ("factor" == class(temp_train$Target))
+  plot_ROC(model_gbm, valid, temp_train,  file_path=file_path, jpgname=NULL, classes="Target")
+```
+
+## Plot GLM model: AUC
+```{r modeling-gbm-plot-auc-glm2, echo=FALSE}
+if ("factor" == class(temp_train$Target))
+  plot_ROC(model_glm, valid, temp_train,  file_path=file_path, jpgname=NULL, classes="Target")
+```
+
+
+## Confidence intervals: GBM and GLM (caret)
+```{r modeling-resampling, echo=TRUE}
+if ("factor" == class(temp_train$Target)) {
+models0 = list(model_gbm, model_glm)  
+resampling <- resamples(models0)
+my_plot = bwplot(resampling)
+print(my_plot)
+}
+```
+
+
+##  Model h2o DNN plot classification
+
+```{r modeling-h2o-plot4, echo=TRUE}
+if ("factor" == class(temp_train$Target)){
+  if (!is.null(h2o_model)) { 
+    #dtrain_h2o_classes = data.frame("h2o"=h2o_model$train_pred)
+    #dtest_h2o_classes = data.frame("h2o"=h2o_model$test_pred)
+
+    # class1 must be minority!!!
+    stopifnot(sum(temp_train$Target=="class1") < sum(temp_train$Target=="class2"))
+    train_h2o_prob0 = as.data.frame( predict(h2o_model$model_h2o, as.h2o(temp_train)) )
+    train_h2o_prob = train_h2o_prob0$class1
+    
+    valid_h2o_prob0 = as.data.frame( predict(h2o_model$model_h2o, as.h2o(valid)) )
+    valid_h2o_prob = valid_h2o_prob0$class1
+    
+    print(summary(valid_h2o_prob0)) #summary(train_h2o_prob))
+  }
+}
+```
+
+
+
+
+
